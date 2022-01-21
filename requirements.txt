@@ -1,0 +1,10 @@
+# API
+fastapi 
+uvicorn 
+ormar 
+alembic 
+aiosqlite
+
+#GPS
+pyserial-asyncio
+pynmea2
