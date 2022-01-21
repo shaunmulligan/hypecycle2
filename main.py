@@ -75,6 +75,9 @@ async def startup() -> None:
     hypecycleState.hrm = HrSensor(hypecycleState, address)
     hr_task = asyncio.create_task(hypecycleState.hrm.start(ble_sensors_active))
 
+    hypecycleState.powermeter = PowerSensor(hypecycleState, "CF:AB:4C:E0:3B:45")
+    power_task = asyncio.create_task(hypecycleState.powermeter.start(ble_sensors_active))
+
 @app.on_event("shutdown")
 async def shutdown() -> None:
     database_ = app.state.database
