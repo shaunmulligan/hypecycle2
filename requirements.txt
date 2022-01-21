@@ -8,3 +8,7 @@ aiosqlite
 #GPS
 pyserial-asyncio
 pynmea2
+
+#bluetooth
+bleak
+pycycling
