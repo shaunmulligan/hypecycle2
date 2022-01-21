@@ -12,6 +12,7 @@ from model.db import database, Rides, Blesensors, Gpsreadings, Hrreadings, Power
 from api import rides
 from sensors.gps import Gps
 from sensors.ble import HrSensor, PowerSensor
+from sensors.ble.discover import discover_devices
 
 # Globals
 app = FastAPI()
@@ -56,6 +57,10 @@ async def get_bpm():
 @app.get("/gpsfix")
 async def get_fix():
     return gps.is_gps_quality_ok
+
+@app.get("/discover")
+async def discover_ble_devices():
+    return await discover_devices()
 
 @app.on_event("startup")
 async def startup() -> None:
