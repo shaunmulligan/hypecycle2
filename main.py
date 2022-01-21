@@ -71,7 +71,8 @@ async def startup() -> None:
     # Spawn GPS monitoring task
     gps_task = asyncio.create_task(gps.start())
 
-    address = "F0:99:19:59:B4:00" #Todo: get address and type from DB of blesensors
+    # address = "F0:99:19:59:B4:00" #Todo: get address and type from DB of blesensors
+    address = "D9:38:0B:2E:22:DD" #HRM-pro
     hypecycleState.hrm = HrSensor(hypecycleState, address)
     hr_task = asyncio.create_task(hypecycleState.hrm.start(ble_sensors_active))
 
