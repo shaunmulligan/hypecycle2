@@ -1,6 +1,7 @@
 import asyncio
-import random
-from bleak import BleakClient
+from typing import List
+from bleak import BleakClient, BleakScanner
+from bleak.backends.device import BLEDevice
 from pycycling.heart_rate_service import HeartRateService
 from pycycling.cycling_power_service import CyclingPowerService
 from pycycling.cycling_speed_cadence_service import CyclingSpeedCadenceService
@@ -80,6 +81,7 @@ class PowerSensor(object):
 
                 print("cadence: ", cadence)
                 self.state.instantaneous_power = data.instantaneous_power
+                self.state.cadence = cadence
 
             while not client.is_connected:
                 print("trying to connect to powermeter")
@@ -97,6 +99,35 @@ class PowerSensor(object):
     async def stop(self):
         await self.power_service.disable_cycling_power_measurement_notifications()
         self.client.disconnect()
+
+class SensorScanner(object):
+    """ BLE sensor scanner class """
+    # def __init__(self):
+    #     self.addresses = []
+
+    async def scan_for_devices(self, addresses: List[str]) -> List[BLEDevice]:
+        addresses = [a.lower() for a in addresses]
+        undetected_devices = []
+        s = BleakScanner()
+        print("Detecting devices...")
+        devices = [await s.find_device_by_address(address, timeout=5.0) for address in addresses]
+        for d in devices:
+            if d:
+                print(f"Detected {d}...")
+        if None in devices:
+            # We did not find all desired devices...
+            undetected_devices = list(
+                set(addresses).difference(
+                    list(
+                        filter(
+                            lambda x: x in [d.address.lower() for d in devices if d],
+                            addresses,
+                        )
+                    )
+                )
+            )
+            devices = [i for i in devices if i] # Remove None from devices list
+        return devices, undetected_devices
 
 # Tacx Neo 2T output
 #CyclingPowerMeasurement(instantaneous_power=0, accumulated_energy=None, pedal_power_balance=None, accumulated_torque=None, cumulative_wheel_revs=165, last_wheel_event_time=0, cumulative_crank_revs=0, last_crank_event_time=0, maximum_force_magnitude=None, minimum_force_magnitude=None, maximum_torque_magnitude=None, minimum_torque_magnitude=None, top_dead_spot_angle=None, bottom_dead_spot_angle=None)

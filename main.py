@@ -11,7 +11,7 @@ from fastapi_crudrouter import OrmarCRUDRouter
 from model.db import database, Rides, Blesensors, Gpsreadings, Hrreadings, Powerreadings
 from api import rides
 from sensors.gps import Gps
-from sensors.ble import HrSensor, PowerSensor
+from sensors.ble import HrSensor, PowerSensor, SensorScanner
 from sensors.ble.discover import discover_devices
 
 # Globals
@@ -72,12 +72,21 @@ async def startup() -> None:
     gps_task = asyncio.create_task(gps.start())
 
     # address = "F0:99:19:59:B4:00" #Todo: get address and type from DB of blesensors
-    address = "D9:38:0B:2E:22:DD" #HRM-pro
-    hypecycleState.hrm = HrSensor(hypecycleState, address)
-    hr_task = asyncio.create_task(hypecycleState.hrm.start(ble_sensors_active))
-
-    hypecycleState.powermeter = PowerSensor(hypecycleState, "CF:AB:4C:E0:3B:45")
-    power_task = asyncio.create_task(hypecycleState.powermeter.start(ble_sensors_active))
+    #address = "D9:38:0B:2E:22:DD" #HRM-pro
+    addresses = ["F0:99:19:59:B4:00", "F1:01:52:E2:90:FA"]
+    scanner = SensorScanner()
+    devices, not_found = await scanner.scan_for_devices(addresses)
+    print(devices)
+    print("Couldn't find: ", not_found)
+    for device in devices:
+        if device.address == addresses[0]: 
+            # Start heart rate monitor 
+            hypecycleState.hrm = HrSensor(hypecycleState, devices[0])
+            hr_task = asyncio.create_task(hypecycleState.hrm.start(ble_sensors_active))
+        if device.address == addresses[1]:
+            # Start power meter monitor
+            hypecycleState.powermeter = PowerSensor(hypecycleState, devices[1])
+            power_task = asyncio.create_task(hypecycleState.powermeter.start(ble_sensors_active))
 
 @app.on_event("shutdown")
 async def shutdown() -> None:
