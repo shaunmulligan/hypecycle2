@@ -1,6 +1,5 @@
 # TODO:
 
-- add @backoff.on_exception(backoff.constant, bleak.exc.BleakError, interval=5) to retry connection when exceptions are thrown. https://pypi.org/project/backoff/
 - Figure out BLE reconnect logic
     - Periodically re-run scanner ??
 - get first hrm and power sensor addresses from db before scanner

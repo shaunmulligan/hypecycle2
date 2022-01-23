@@ -50,6 +50,21 @@ async def get_location():
             }
 
 #Todo: remove this test route
+@app.get("/altitude")
+async def get_altitude():
+    try:
+        return { "gps_altitude" : float(hypecycleState.gps_altitude) }
+    except AttributeError:
+        return {
+                "gps_altitude": 0.0
+            }
+
+#Todo: remove this test route
+@app.get("/speed")
+async def get_speed():
+    return hypecycleState.speed
+
+#Todo: remove this test route
 @app.get("/bpm")
 async def get_bpm():
     try:

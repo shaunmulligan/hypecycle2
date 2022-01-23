@@ -85,6 +85,7 @@ class Gps(object):
                 return
             # Seems to be ok.
             self.is_gps_quality_ok = True
+            self.state.gps_altitude = parts[9]
             return
 
         # GPRMC. Get date, time and lat/long.
@@ -102,6 +103,7 @@ class Gps(object):
                 lat_n_s = parts[4]
                 longitude = parts[5]
                 long_w_e = parts[6]
+                speed_knots = parts[7]
                 date = parts[9]
             else:
                 self.last_used_lat_dd = 0.0
@@ -143,6 +145,7 @@ class Gps(object):
                 "longitude": longitude_dd,
                 "gps_time": datetime_utc
             }
+            self.state.speed = float(speed_knots) * 1.852 if speed_knots is not None else 0
 
 
 class ReadGpsSerialNmea(asyncio.Protocol):
