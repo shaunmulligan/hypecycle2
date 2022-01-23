@@ -1,7 +1,9 @@
 import asyncio
 from typing import List
+import backoff
 from bleak import BleakClient, BleakScanner
 from bleak.backends.device import BLEDevice
+from bleak.exc import BleakError
 from pycycling.heart_rate_service import HeartRateService
 from pycycling.cycling_power_service import CyclingPowerService
 from pycycling.cycling_speed_cadence_service import CyclingSpeedCadenceService
@@ -16,7 +18,7 @@ class HrSensor(object):
         self.client = None
         self.hr_service = None
 
-
+    @backoff.on_exception(backoff.constant, (BleakError, asyncio.exceptions.TimeoutError), interval=5)
     async def start(self, sensor_active):
         self.asyncio_loop = asyncio.get_event_loop()
         print("starting HR sensor monitor loop on ", self.address)
@@ -42,8 +44,8 @@ class HrSensor(object):
             self.hr_service.set_hr_measurement_handler(my_measurement_handler)
 
             await self.hr_service.enable_hr_measurement_notifications()
+            
             while sensor_active and client.is_connected:
-
                 await asyncio.sleep(2)
 
     async def stop(self):
@@ -62,6 +64,7 @@ class PowerSensor(object):
         self.previous_crank_revs = 0
         self.previous_crank_event_time = 0
 
+    @backoff.on_exception(backoff.constant, (BleakError, asyncio.exceptions.TimeoutError), interval=5)
     async def start(self, sensor_active):
         self.asyncio_loop = asyncio.get_event_loop()
         print("starting Power sensor monitor loop on ", self.address)

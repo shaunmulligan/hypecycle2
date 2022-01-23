@@ -75,8 +75,9 @@ async def startup() -> None:
     # Spawn GPS monitoring task
     gps_task = asyncio.create_task(gps.start())
 
-    # address = "F0:99:19:59:B4:00" #Todo: get address and type from DB of blesensors
-    #address = "D9:38:0B:2E:22:DD" #HRM-pro
+    #Todo: get address and type from DB of blesensors
+    # address = "F0:99:19:59:B4:00" # Forerunner HR
+    # address = "D9:38:0B:2E:22:DD" #HRM-pro : Tacx neo = "F1:01:52:E2:90:FA"
     addresses = ["F0:99:19:59:B4:00", "F1:01:52:E2:90:FA"]
     scanner = SensorScanner()
     devices, not_found = await scanner.scan_for_devices(addresses)
