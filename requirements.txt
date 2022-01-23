@@ -18,8 +18,9 @@ pycycling==0.1.0
 # Utils
 backoff==1.11.1
 
-
-
+# MCP2221
+hidapi==0.11.0.post2
+adafruit-blinka
 
 
 
