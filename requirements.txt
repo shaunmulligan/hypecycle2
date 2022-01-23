@@ -1,14 +1,39 @@
 # API
-fastapi 
-uvicorn 
-ormar 
-alembic 
-aiosqlite
+fastapi==0.72.0
+fastapi-crudrouter==0.8.4
+uvicorn==0.17.0
+ormar==0.10.24
+aiosqlite==0.17.0
+alembic==1.7.5
 
 #GPS
-pyserial-asyncio
-pynmea2
+pyserial==3.5b0
+pyserial-asyncio==0.6
+pynmea2==1.18.0
 
 #bluetooth
-bleak
-pycycling
+bleak==0.14.1
+pycycling==0.1.0
+
+# Utils
+backoff==1.11.1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
