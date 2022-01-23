@@ -16,11 +16,15 @@ class HrSensor(object):
         self.client = None
         self.hr_service = None
 
-    async def start(self, sensor_active):
+
+    async def start(self, sensor_active, connected_event):
         self.asyncio_loop = asyncio.get_event_loop()
         print("starting HR sensor monitor loop on ", self.address)
-    
-        async with BleakClient(self.address, loop=self.asyncio_loop, timeout=10.0) as client:
+        def disconnect_handler(self):
+            print("Heartrate Monitor disconnected")
+            connected_event.clear()
+
+        async with BleakClient(self.address, loop=self.asyncio_loop, timeout=10.0, disconnected_callback=disconnect_handler) as client:
             # Set the instance client so we can clean up later.
             self.client = client
             
@@ -32,13 +36,15 @@ class HrSensor(object):
                 print("trying to connect to HRM")
                 await asyncio.sleep(1)
             print("Heart Rate Monitor Connected")
+            connected_event.set()
+
             self.hr_service = HeartRateService(client)
             self.hr_service.set_hr_measurement_handler(my_measurement_handler)
 
             await self.hr_service.enable_hr_measurement_notifications()
-            while sensor_active:
+            while sensor_active and client.is_connected:
 
-                await asyncio.sleep(10)
+                await asyncio.sleep(2)
 
     async def stop(self):
         await self.hr_service.disable_hr_measurement_notifications()
@@ -56,9 +62,12 @@ class PowerSensor(object):
         self.previous_crank_revs = 0
         self.previous_crank_event_time = 0
 
-    async def start(self, sensor_active):
+    async def start(self, sensor_active, connected_event):
         self.asyncio_loop = asyncio.get_event_loop()
         print("starting Power sensor monitor loop on ", self.address)
+        def disconnect_handler(self):
+            print("Power Meter disconnected")
+            connected_event.clear()
     
         async with BleakClient(self.address, loop=self.asyncio_loop, timeout=5.0) as client:
             # Set the instance client so we can clean up later.
@@ -87,12 +96,13 @@ class PowerSensor(object):
                 print("trying to connect to powermeter")
                 await asyncio.sleep(1)
             # Setup Power
+            connected_event.set()
             print("Powermeter connected!")
             self.power_service = CyclingPowerService(client)
             self.power_service.set_cycling_power_measurement_handler(my_power_handler)
             await self.power_service.enable_cycling_power_measurement_notifications()
 
-            while sensor_active:
+            while sensor_active and client.is_connected:
                 # print("Reading Power and Cadence")
                 await asyncio.sleep(10)
 

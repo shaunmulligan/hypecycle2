@@ -30,7 +30,9 @@ app.state.database = database
 hypecycleState = type('', (), {})()
 hypecycleState.gps_active = True
 
-ble_sensors_active = asyncio.Event()
+ble_sensors_active = asyncio.Event() # single to indicate if BLE devices should be active or not
+hr_available = asyncio.Event() # True if we have a connected BLE HRM sensor
+power_available = asyncio.Event() # True if we have a connecte Power sensor
 gps = Gps(hypecycleState)
 
 #Todo: remove this test route
@@ -82,11 +84,11 @@ async def startup() -> None:
         if device.address == addresses[0]: 
             # Start heart rate monitor 
             hypecycleState.hrm = HrSensor(hypecycleState, devices[0])
-            hr_task = asyncio.create_task(hypecycleState.hrm.start(ble_sensors_active))
-        if device.address == addresses[1]:
+            hr_task = asyncio.create_task(hypecycleState.hrm.start(ble_sensors_active, hr_available))
+        if len(devices) > 1 and device.address == addresses[1]:
             # Start power meter monitor
             hypecycleState.powermeter = PowerSensor(hypecycleState, devices[1])
-            power_task = asyncio.create_task(hypecycleState.powermeter.start(ble_sensors_active))
+            power_task = asyncio.create_task(hypecycleState.powermeter.start(ble_sensors_active, power_available))
 
 @app.on_event("shutdown")
 async def shutdown() -> None:
