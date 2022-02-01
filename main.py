@@ -32,6 +32,8 @@ hypecycleState = type('', (), {})()
 hypecycleState.gps_active = True
 hypecycleState.hr_available = False
 hypecycleState.power_available = False
+hypecycleState.ride_paused = False # When this is true we should
+hypecycleState.is_active = False # is_active = True when we have an Current/active ride in the DB
 
 ble_sensors_active = asyncio.Event() # single to indicate if BLE devices should be active or not
 
@@ -76,7 +78,12 @@ async def get_bpm():
 #Todo: remove this test route
 @app.get("/status")
 async def get_fix():
-    return { "gps_fix" : gps.is_gps_quality_ok, "heart_rate": hypecycleState.hr_available, "power": hypecycleState.power_available, "battery": hypecycleState.battery_level }
+    return { "gps_fix" : gps.is_gps_quality_ok, 
+            "heart_rate": hypecycleState.hr_available, 
+            "power": hypecycleState.power_available, 
+            "battery": hypecycleState.battery_level, 
+            "is_active": hypecycleState.is_active,
+            "ride_paused": hypecycleState.ride_paused }
 
 @app.get("/discover")
 async def discover_ble_devices():
@@ -92,6 +99,7 @@ async def startup() -> None:
     gps_task = asyncio.create_task(gps.start())
     enviro_task = asyncio.create_task(pico.monitor_pressure_temp(hypecycleState))
     battery_task = asyncio.create_task(pico.monitor_battery_level(hypecycleState))
+    buttons_task = asyncio.create_task(pico.monitor_buttons(hypecycleState))
     #Todo: get address and type from DB of blesensors
     # address = "F0:99:19:59:B4:00" # Forerunner HR
     # address = "D9:38:0B:2E:22:DD" #HRM-pro : Tacx neo = "F1:01:52:E2:90:FA"

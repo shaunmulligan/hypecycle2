@@ -13,16 +13,14 @@ battery = analogio.AnalogIn(board.ADC0)
 def get_voltage(raw):
     return ((raw * 2.1) / 65536) * 2
 
-class Interval:
-    """Simple class to hold an interval value. Use .value to to read or write."""
-
-    def __init__(self, initial_interval):
-        self.value = initial_interval
-
-async def monitor_interval_buttons(pin_start_pause, pin_stop, pin_three, interval):
+async def monitor_buttons(state):
     """Monitor 3 buttons: 
     """
     # Assume buttons are active low.
+    pin_start_pause = board.GP18 
+    pin_stop = board.GP17
+    pin_three = board.GP16
+
     with keypad.Keys(
         (pin_start_pause, pin_stop, pin_three), value_when_pressed=False, pull=True
     ) as keys:
@@ -30,16 +28,15 @@ async def monitor_interval_buttons(pin_start_pause, pin_stop, pin_three, interva
             key_event = keys.events.get()
             if key_event and key_event.pressed:
                 if key_event.key_number == 0:
-                    # Lengthen the interval.
-                    interval.value += 0.1
                     print("Start/Pause button pressed")
+                    state.ride_paused = not state.ride_paused # Toggle the paused state
                 elif key_event.key_number == 1:
                     print("Stop button pressed")
+                    if state.is_active:
+                        state.is_active = False
+                        print("Stop ride requested by button press...")
                 else:
-                    # Shorten the interval.
-                    interval.value = max(0.1, interval.value - 0.1)
                     print("Button 3 pressed")
-                print("interval is now", interval.value)
             # Let another task run.
             await asyncio.sleep(0)
 
@@ -53,16 +50,6 @@ async def monitor_battery_level(state):
         state.battery_voltage = volts
         state.battery_level = level
         await asyncio.sleep(60)
-
-async def blink(pin, interval):
-    """Blink the given pin forever.
-    The blinking rate is controlled by the supplied Interval object.
-    """
-    with digitalio.DigitalInOut(pin) as led:
-        led.switch_to_output()
-        while True:
-            led.value = not led.value
-            await asyncio.sleep(interval.value)
 
 async def monitor_pressure_temp(state):
     i2c = busio.I2C(scl=board.GP15, sda=board.GP14) # uses board.SCL and board.SDA
