@@ -17,7 +17,7 @@ class Gps(object):
         self.asyncio_loop = asyncio.get_event_loop()
         # Check if USB GPS is connected.
         gps_device_path_found = None
-        for gps_device_path in ["/dev/ttyACM1", "/dev/ttyUSB0"]:
+        for gps_device_path in ["/dev/ttyACM1", "/dev/ttyUSB0", "/dev/cu.usbmodem101"]:
             gps_device = pathlib.Path(gps_device_path)
             if gps_device.exists():
                 gps_device_path_found = gps_device_path
@@ -86,6 +86,10 @@ class Gps(object):
             # Seems to be ok.
             self.is_gps_quality_ok = True
             self.state.gps_altitude = parts[9]
+            print("")
+            print("GPS fix: ", self.is_gps_quality_ok)
+            print("GPS Altitude: ", self.state.gps_altitude)
+            print("")
             return
 
         # GPRMC. Get date, time and lat/long.
@@ -135,18 +139,18 @@ class Gps(object):
             self.gps_latitude = latitude_dd
             self.gps_longitude = longitude_dd
 
-            # print("")
-            # print("GPS datetime: ", datetime_utc)
-            # print("GPS latitude: ", latitude_dd)
-            # print("GPS longitude: ", longitude_dd)
-            # print("")
+            print("")
+            print("GPS datetime: ", datetime_utc)
+            print("GPS latitude: ", latitude_dd)
+            print("GPS longitude: ", longitude_dd)
+            print("")
             self.state.location = {
                 "latitude": latitude_dd,
                 "longitude": longitude_dd,
                 "gps_time": datetime_utc
             }
             self.state.speed = float(speed_knots) * 1.852 if speed_knots is not None else 0
-
+            print("GPS speed: ", self.state.speed, " km/h")
 
 class ReadGpsSerialNmea(asyncio.Protocol):
     """ Serial connection for serial_asyncio. """
@@ -160,7 +164,7 @@ class ReadGpsSerialNmea(asyncio.Protocol):
     def connection_made(self, transport):
         transport.serial.rts = False
         # self.gps_manager: GPS manager for callbacks will be set externally.
-        # print("GPS: Connection made.")
+        print("GPS: Connection made.")
 
     def data_received(self, data):
         try:
@@ -191,17 +195,18 @@ class ReadGpsSerialNmea(asyncio.Protocol):
         pass
 
 
-# # === MAIN - for test ===
-# async def main():
-#     """ """
-#     print("Test started.")
-#     gps_test = GpsTest()
-#     await gps_test.start()
-#     await asyncio.sleep(60.0)
-#     # await gps_test.stop()
-#     print("Test finished.")
+# === MAIN - for test ===
+async def main():
+    """ """
+    print("Test started.")
+    hypecycleState = type('', (), {})()
+    gps_test = Gps(hypecycleState)
+    await gps_test.start()
+    await asyncio.sleep(60.0)
+    await gps_test.stop()
+    print("Test finished.")
 
 
-# if __name__ == "__main__":
-#     """ """
-#     asyncio.run(main(), debug=True)
+if __name__ == "__main__":
+    """ """
+    asyncio.run(main(), debug=True)
