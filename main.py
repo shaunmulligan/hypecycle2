@@ -13,6 +13,7 @@ from api import rides
 from sensors.gps import Gps
 from sensors.ble import HrSensor, PowerSensor, SensorScanner
 from sensors.ble.discover import discover_devices
+from sensors import pico
 
 # Globals
 app = FastAPI()
@@ -53,7 +54,7 @@ async def get_location():
 @app.get("/altitude")
 async def get_altitude():
     try:
-        return { "gps_altitude" : float(hypecycleState.gps_altitude) }
+        return { "gps_altitude" : float(hypecycleState.gps_altitude), "altitude": float(hypecycleState.altitude) }
     except AttributeError:
         return {
                 "gps_altitude": 0.0
@@ -89,11 +90,11 @@ async def startup() -> None:
     # Launch our BLE and GPS monitor tasks here
     # Spawn GPS monitoring task
     gps_task = asyncio.create_task(gps.start())
-
+    enviro_task = asyncio.create_task(pico.monitor_pressure_temp(hypecycleState))
     #Todo: get address and type from DB of blesensors
     # address = "F0:99:19:59:B4:00" # Forerunner HR
     # address = "D9:38:0B:2E:22:DD" #HRM-pro : Tacx neo = "F1:01:52:E2:90:FA"
-    addresses = ["F0:99:19:59:B4:00", "F1:01:52:E2:90:FA"]
+    addresses = ["D9:38:0B:2E:22:DD", "F1:01:52:E2:90:FA"]
     scanner = SensorScanner()
     devices, not_found = await scanner.scan_for_devices(addresses)
     print(devices)
