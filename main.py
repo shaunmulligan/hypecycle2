@@ -76,7 +76,7 @@ async def get_bpm():
 #Todo: remove this test route
 @app.get("/status")
 async def get_fix():
-    return { "gps_fix" : gps.is_gps_quality_ok, "heart_rate": hypecycleState.hr_available, "power": hypecycleState.power_available }
+    return { "gps_fix" : gps.is_gps_quality_ok, "heart_rate": hypecycleState.hr_available, "power": hypecycleState.power_available, "battery": hypecycleState.battery_level }
 
 @app.get("/discover")
 async def discover_ble_devices():
@@ -91,6 +91,7 @@ async def startup() -> None:
     # Spawn GPS monitoring task
     gps_task = asyncio.create_task(gps.start())
     enviro_task = asyncio.create_task(pico.monitor_pressure_temp(hypecycleState))
+    battery_task = asyncio.create_task(pico.monitor_battery_level(hypecycleState))
     #Todo: get address and type from DB of blesensors
     # address = "F0:99:19:59:B4:00" # Forerunner HR
     # address = "D9:38:0B:2E:22:DD" #HRM-pro : Tacx neo = "F1:01:52:E2:90:FA"

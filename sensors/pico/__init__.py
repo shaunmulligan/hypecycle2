@@ -43,13 +43,15 @@ async def monitor_interval_buttons(pin_start_pause, pin_stop, pin_three, interva
             # Let another task run.
             await asyncio.sleep(0)
 
-async def monitor_battery_level():
+async def monitor_battery_level(state):
     while True:
         MAX_V = 4.2
         raw = battery.value
         volts = get_voltage(raw)
         level = (volts/MAX_V)*100
         print("raw = {:5d} volts = {:5.2f} level = {:5.2f}".format(raw, volts, level))
+        state.battery_voltage = volts
+        state.battery_level = level
         await asyncio.sleep(60)
 
 async def blink(pin, interval):
