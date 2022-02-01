@@ -8,12 +8,14 @@ import analogio
 import adafruit_bme680
 import busio
 
+from model.db import Rides
+
 battery = analogio.AnalogIn(board.ADC0)
 
 def get_voltage(raw):
     return ((raw * 2.1) / 65536) * 2
 
-async def monitor_buttons(state):
+async def monitor_buttons(state, stop_event):
     """Monitor 3 buttons: 
     """
     # Assume buttons are active low.
@@ -32,9 +34,14 @@ async def monitor_buttons(state):
                     state.ride_paused = not state.ride_paused # Toggle the paused state
                 elif key_event.key_number == 1:
                     print("Stop button pressed")
-                    if state.is_active:
-                        state.is_active = False
+                    # Get current active ride if it exists
+                    cur_ride = await Rides.objects.filter(active=True).get_or_none()
+                    if cur_ride:
+                        # Change ride active state to false
+                        ride = await cur_ride.update(active=False)
                         print("Stop ride requested by button press...")
+                    else:
+                        print("No active ride to stop...")
                 else:
                     print("Button 3 pressed")
             # Let another task run.
