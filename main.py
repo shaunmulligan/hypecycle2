@@ -97,7 +97,7 @@ async def startup() -> None:
     # Launch our BLE and GPS monitor tasks here
     # Spawn GPS monitoring task
     gps_task = asyncio.create_task(gps.start())
-    enviro_task = asyncio.create_task(pico.monitor_pressure_temp(hypecycleState))
+    # enviro_task = asyncio.create_task(pico.monitor_pressure_temp(hypecycleState))
     battery_task = asyncio.create_task(pico.monitor_battery_level(hypecycleState))
     buttons_task = asyncio.create_task(pico.monitor_buttons(hypecycleState))
    

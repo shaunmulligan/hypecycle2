@@ -5,7 +5,7 @@ import board
 import digitalio
 import keypad
 import analogio
-import adafruit_bme680
+# import adafruit_bme680
 import busio
 
 from model.db import Rides
@@ -15,7 +15,7 @@ battery = analogio.AnalogIn(board.ADC0)
 def get_voltage(raw):
     return ((raw * 2.1) / 65536) * 2
 
-async def monitor_buttons(state, stop_event):
+async def monitor_buttons(state):
     """Monitor 3 buttons: 
     """
     # Assume buttons are active low.
@@ -58,30 +58,30 @@ async def monitor_battery_level(state):
         state.battery_level = level
         await asyncio.sleep(60)
 
-async def monitor_pressure_temp(state):
-    i2c = busio.I2C(scl=board.GP15, sda=board.GP14) # uses board.SCL and board.SDA
+# async def monitor_pressure_temp(state):
+#     i2c = busio.I2C(scl=board.GP15, sda=board.GP14) # uses board.SCL and board.SDA
     
-    # To initialise using the default address:
-    bme680 = adafruit_bme680.Adafruit_BME680_I2C(i2c, 0x76)
+#     # To initialise using the default address:
+#     bme680 = adafruit_bme680.Adafruit_BME680_I2C(i2c, 0x76)
     
-    # change this to match the location's pressure (hPa) at sea level
-    bme680.sea_level_pressure = 1024.0
+#     # change this to match the location's pressure (hPa) at sea level
+#     bme680.sea_level_pressure = 1024.0
     
-    # You will usually have to add an offset to account for the temperature of
-    # the sensor. This is usually around 5 degrees but varies by use. Use a
-    # separate temperature sensor to calibrate this one.
-    temperature_offset = -5
+#     # You will usually have to add an offset to account for the temperature of
+#     # the sensor. This is usually around 5 degrees but varies by use. Use a
+#     # separate temperature sensor to calibrate this one.
+#     temperature_offset = -5
     
-    while True:
-        print("\nTemperature: %0.1f C" % (bme680.temperature + temperature_offset))
-        print("Gas: %d ohm" % bme680.gas)
-        print("Humidity: %0.1f %%" % bme680.relative_humidity)
-        print("Pressure: %0.3f hPa" % bme680.pressure)
-        print("Altitude = %0.2f meters" % bme680.altitude)
-        state.temperature = bme680.temperature
-        state.pressure = bme680.pressure
-        state.altitude = bme680.altitude
-        await asyncio.sleep(10)
+#     while True:
+#         print("\nTemperature: %0.1f C" % (bme680.temperature + temperature_offset))
+#         print("Gas: %d ohm" % bme680.gas)
+#         print("Humidity: %0.1f %%" % bme680.relative_humidity)
+#         print("Pressure: %0.3f hPa" % bme680.pressure)
+#         print("Altitude = %0.2f meters" % bme680.altitude)
+#         state.temperature = bme680.temperature
+#         state.pressure = bme680.pressure
+#         state.altitude = bme680.altitude
+#         await asyncio.sleep(10)
 
 # async def main():
 #     # Start blinking 0.5 sec on, 0.5 sec off.
