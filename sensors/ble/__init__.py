@@ -50,7 +50,7 @@ class HrSensor(object):
 
     async def stop(self):
         await self.hr_service.disable_hr_measurement_notifications()
-        self.client.disconnect()
+        await self.client.disconnect()
 
 class PowerSensor(object):
     """ Power BLE sensor class """
@@ -111,7 +111,7 @@ class PowerSensor(object):
 
     async def stop(self):
         await self.power_service.disable_cycling_power_measurement_notifications()
-        self.client.disconnect()
+        await self.client.disconnect()
 
 class SensorScanner(object):
     """ BLE sensor scanner class """
