@@ -13,7 +13,8 @@ from api import rides
 from sensors.gps import Gps
 from sensors.ble import HrSensor, PowerSensor, SensorScanner
 from sensors.ble.discover import discover_devices
-from sensors import pico
+# from sensors.pico import *
+from sensors import bmp388
 
 # Globals
 app = FastAPI()
@@ -91,20 +92,22 @@ async def discover_ble_devices():
 
 @app.on_event("startup")
 async def startup() -> None:
+    print("starupup running")
     database_ = app.state.database
     if not database_.is_connected:
         await database_.connect()
+    print("connected to DB")
     # Launch our BLE and GPS monitor tasks here
     # Spawn GPS monitoring task
-    gps_task = asyncio.create_task(gps.start())
-    # enviro_task = asyncio.create_task(pico.monitor_pressure_temp(hypecycleState))
-    battery_task = asyncio.create_task(pico.monitor_battery_level(hypecycleState))
-    buttons_task = asyncio.create_task(pico.monitor_buttons(hypecycleState))
+    # gps_task = asyncio.create_task(gps.start())
+    enviro_task = asyncio.create_task(bmp388.monitor_pressure_temp(hypecycleState))
+    # battery_task = asyncio.create_task(pico.monitor_battery_level(hypecycleState))
+    # buttons_task = asyncio.create_task(pico.monitor_buttons(hypecycleState))
    
     #Todo: get address and type from DB of blesensors
     # address = "F0:99:19:59:B4:00" # Forerunner HR
     # address = "D9:38:0B:2E:22:DD" #HRM-pro : Tacx neo = "F1:01:52:E2:90:FA"
-    addresses = ["F0:99:19:59:B4:00", "F1:01:52:E2:90:FA"]
+    addresses = ["F0:99:19:59:B4:00"]
     scanner = SensorScanner()
     devices, not_found = await scanner.scan_for_devices(addresses)
     print(devices)
