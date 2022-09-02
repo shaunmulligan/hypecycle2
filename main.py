@@ -14,6 +14,7 @@ from sensors.gps import Gps
 from sensors.ble import HrSensor, PowerSensor, SensorScanner
 from sensors.ble.discover import discover_devices
 from sensors import pico
+# from sensors import bmp388
 
 # Globals
 app = FastAPI()
@@ -97,7 +98,7 @@ async def startup() -> None:
     # Launch our BLE and GPS monitor tasks here
     # Spawn GPS monitoring task
     gps_task = asyncio.create_task(gps.start())
-    # enviro_task = asyncio.create_task(pico.monitor_pressure_temp(hypecycleState))
+    # enviro_task = asyncio.create_task(bmp388.monitor_pressure_temp(hypecycleState))
     battery_task = asyncio.create_task(pico.monitor_battery_level(hypecycleState))
     buttons_task = asyncio.create_task(pico.monitor_buttons(hypecycleState))
    
