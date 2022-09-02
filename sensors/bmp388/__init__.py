@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 import os
-os.environ["BLINKA_U2IF"] = "0"
 import time
 import asyncio
 import board
-# import adafruit_bmp3xx
+import adafruit_bmp3xx
 
 # I2C setup
 i2c = board.I2C()  # uses board.SCL and board.SDA

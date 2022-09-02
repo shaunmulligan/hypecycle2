@@ -13,6 +13,7 @@ from api import rides
 from sensors.gps import Gps
 from sensors.ble import HrSensor, PowerSensor, SensorScanner
 from sensors.ble.discover import discover_devices
+from sensors import ioexpander 
 #from sensors import bmp388
 
 # Globals
@@ -98,6 +99,7 @@ async def startup() -> None:
     # Spawn GPS monitoring task
     gps_task = asyncio.create_task(gps.start())
     #enviro_task = asyncio.create_task(bmp388.monitor_pressure_temp(hypecycleState))
+    button_task = asyncio.create_task(ioexpander.monitor_buttons(hypecycleState))
    
     #Todo: get address and type from DB of blesensors
     # address = "F0:99:19:59:B4:00" # Forerunner HR

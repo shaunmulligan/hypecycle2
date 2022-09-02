@@ -20,13 +20,14 @@ pycycling==0.1.0
 backoff==1.11.1
 
 # MCP2221
-hidapi==0.11.0.post2
-adafruit-blinka
+#hidapi==0.11.0.post2
+#adafruit-blinka
 
 # Pressure/Temp
 adafruit-circuitpython-bmp3xx
 
-
+# IO Expander
+pimoroni-ioexpander
 
 
 
