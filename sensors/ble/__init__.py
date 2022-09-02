@@ -18,7 +18,7 @@ class HrSensor(object):
         self.client = None
         self.hr_service = None
 
-    @backoff.on_exception(backoff.constant, (BleakError, asyncio.exceptions.TimeoutError), interval=5)
+    # @backoff.on_exception(backoff.constant, (BleakError, asyncio.exceptions.TimeoutError), interval=5)
     async def start(self, sensor_active):
         self.asyncio_loop = asyncio.get_event_loop()
         print("starting HR sensor monitor loop on ", self.address)
@@ -64,7 +64,7 @@ class PowerSensor(object):
         self.previous_crank_revs = 0
         self.previous_crank_event_time = 0
 
-    @backoff.on_exception(backoff.constant, (BleakError, asyncio.exceptions.TimeoutError), interval=5)
+    # @backoff.on_exception(backoff.constant, (BleakError, asyncio.exceptions.TimeoutError), interval=5)
     async def start(self, sensor_active):
         self.asyncio_loop = asyncio.get_event_loop()
         print("starting Power sensor monitor loop on ", self.address)

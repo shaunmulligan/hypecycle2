@@ -14,7 +14,7 @@ from sensors.gps import Gps
 from sensors.ble import HrSensor, PowerSensor, SensorScanner
 from sensors.ble.discover import discover_devices
 from sensors import ioexpander 
-#from sensors import bmp388
+from sensors import bmp388
 
 # Globals
 app = FastAPI()
@@ -98,27 +98,20 @@ async def startup() -> None:
     # Launch our BLE and GPS monitor tasks here
     # Spawn GPS monitoring task
     gps_task = asyncio.create_task(gps.start())
-    #enviro_task = asyncio.create_task(bmp388.monitor_pressure_temp(hypecycleState))
+    enviro_task = asyncio.create_task(bmp388.monitor_pressure_temp(hypecycleState))
     button_task = asyncio.create_task(ioexpander.monitor_buttons(hypecycleState))
+    battery_task = asyncio.create_task(ioexpander.monitor_battery(hypecycleState))
    
     #Todo: get address and type from DB of blesensors
     # address = "F0:99:19:59:B4:00" # Forerunner HR
     # address = "D9:38:0B:2E:22:DD" #HRM-pro : Tacx neo = "F1:01:52:E2:90:FA"
     addresses = ["F0:99:19:59:B4:00", "F1:01:52:E2:90:FA"]
-    scanner = SensorScanner()
-    devices, not_found = await scanner.scan_for_devices(addresses)
-    print(devices)
-    print("Couldn't find: ", not_found)
-    # Todo: make the below more robust, currently always have to have both sensors found
-    for device in devices:
-        if device.address == addresses[0]: 
-            # Start heart rate monitor 
-            hypecycleState.hrm = HrSensor(hypecycleState, devices[0])
-            hr_task = asyncio.create_task(hypecycleState.hrm.start(ble_sensors_active))
-        if len(devices) > 1 and device.address == addresses[1]:
-            # Start power meter monitor
-            hypecycleState.powermeter = PowerSensor(hypecycleState, devices[1])
-            power_task = asyncio.create_task(hypecycleState.powermeter.start(ble_sensors_active))
+    # Start HR
+    hypecycleState.hrm = HrSensor(hypecycleState, "F0:99:19:59:B4:00")
+    hr_task = asyncio.create_task(hypecycleState.hrm.start(ble_sensors_active))
+    # Start Power
+    # hypecycleState.powermeter = PowerSensor(hypecycleState, "F1:01:52:E2:90:FA")
+    # power_task = asyncio.create_task(hypecycleState.powermeter.start(ble_sensors_active))
 
 @app.on_event("shutdown")
 async def shutdown() -> None:
