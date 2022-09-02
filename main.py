@@ -110,8 +110,8 @@ async def startup() -> None:
     hypecycleState.hrm = HrSensor(hypecycleState, "F0:99:19:59:B4:00")
     hr_task = asyncio.create_task(hypecycleState.hrm.start(ble_sensors_active))
     # Start Power
-    # hypecycleState.powermeter = PowerSensor(hypecycleState, "F1:01:52:E2:90:FA")
-    # power_task = asyncio.create_task(hypecycleState.powermeter.start(ble_sensors_active))
+    hypecycleState.powermeter = PowerSensor(hypecycleState, "F1:01:52:E2:90:FA")
+    power_task = asyncio.create_task(hypecycleState.powermeter.start(ble_sensors_active))
 
 @app.on_event("shutdown")
 async def shutdown() -> None:
