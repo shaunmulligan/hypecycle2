@@ -11,9 +11,10 @@ from bleak import BleakScanner
 
 from model.db import database, Rides, Blesensors, Gpsreadings, Hrreadings, Powerreadings
 from api import rides
-from sensors.gps import Gps
+
 from sensors.ble import HrSensor, PowerSensor, SensorScanner
 from sensors.ble.discover import discover_devices
+from sensors import gps
 from sensors import ioexpander 
 from sensors import bmp388
 
@@ -39,9 +40,6 @@ hypecycleState.is_active = False # is_active = True when we have an Current/acti
 hypecycleState.battery_level = 100.0
 
 ble_sensors_active = asyncio.Event() # single to indicate if BLE devices should be active or not
-
-# Create our GPS instance
-gps = Gps(hypecycleState)
 
 @app.get("/location")
 async def get_location():
@@ -83,7 +81,7 @@ async def get_instant_power():
 
 @app.get("/status")
 async def get_fix():
-    return { "gps_fix" : gps.is_gps_quality_ok, 
+    return { "gps_fix" : hypecycleState.fix_quality, 
             "heart_rate": hypecycleState.hr_available, 
             "power": hypecycleState.power_available, 
             "battery": hypecycleState.battery_level, 
@@ -101,7 +99,7 @@ async def startup() -> None:
         await database_.connect()
     # Launch our BLE and GPS monitor tasks here
     # Spawn GPS monitoring task
-    gps_task = asyncio.create_task(gps.start())
+    gps_task = asyncio.create_task(gps.monitor_gps(hypecycleState))
     enviro_task = asyncio.create_task(bmp388.monitor_pressure_temp(hypecycleState))
     button_task = asyncio.create_task(ioexpander.monitor_buttons(hypecycleState))
     battery_task = asyncio.create_task(ioexpander.monitor_battery(hypecycleState))
@@ -112,8 +110,8 @@ async def startup() -> None:
     # address = "D9:38:0B:2E:22:DD" #HRM-pro : Tacx neo = "F1:01:52:E2:90:FA"
     addresses = ["F0:99:19:59:B4:00", "F1:01:52:E2:90:FA"]
     
-    hrm = await BleakScanner.find_device_by_address("D9:38:0B:2E:22:DD",timeout=60.0)
-    power = await BleakScanner.find_device_by_address("F1:01:52:E2:90:FA",timeout=60.0)
+    hrm = await BleakScanner.find_device_by_address("D9:38:0B:2E:22:DD",timeout=10.0)
+    power = await BleakScanner.find_device_by_address("F1:01:52:E2:90:FA",timeout=10.0)
 
     # Start HR
     hypecycleState.hrm = HrSensor(hypecycleState, hrm)
