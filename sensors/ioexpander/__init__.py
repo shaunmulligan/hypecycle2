@@ -36,10 +36,21 @@ async def monitor_buttons(state):
         if start_pause != start_pause_last:
             print("Start/Pause Button has been {}".format("released" if start_pause else "pressed"))
             start_pause_last = start_pause
+            if not start_pause:
+                state.ride_paused = not state.ride_paused # Toggle the paused state
             await asyncio.sleep(1.0 / 30)
         elif stop != stop_last:
             print("Stop Button has been {}".format("released" if stop else "pressed"))
             stop_last = stop
+            if not stop:
+                # Get current active ride if it exists
+                cur_ride = await Rides.objects.filter(active=True).get_or_none()
+                if cur_ride:
+                    # Change ride active state to false
+                    ride = await cur_ride.update(active=False)
+                    print("Stop ride requested by button press...")
+                else:
+                    print("No active ride to stop...")
             await asyncio.sleep(1.0 / 30)
         elif button_3 != button_3_last:
             print("Button 3 has been {}".format("released" if button_3 else "pressed"))

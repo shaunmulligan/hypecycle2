@@ -34,7 +34,7 @@ hypecycleState = type('', (), {})()
 hypecycleState.gps_active = True
 hypecycleState.hr_available = False
 hypecycleState.power_available = False
-hypecycleState.ride_paused = False # When this is true we should
+hypecycleState.ride_paused = False # When this is true we should record data
 hypecycleState.is_active = False # is_active = True when we have an Current/active ride in the DB
 hypecycleState.battery_level = 100.0
 
