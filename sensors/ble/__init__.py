@@ -10,6 +10,14 @@ from pycycling.cycling_speed_cadence_service import CyclingSpeedCadenceService
 
 class HrSensor(object):
     """ HRM BLE sensor class """
+    async def __aenter__(self):
+        print('__aenter__ for HrSensor')
+
+    async def __aexit__(self, *_):
+        print('__aexit__ Clean up for HrSensor')
+        self.client.disconnect()
+        asyncio.sleep(5)
+        
     def __init__(self, state, address):
         self.state = state
         self.address = address
@@ -54,6 +62,14 @@ class HrSensor(object):
 
 class PowerSensor(object):
     """ Power BLE sensor class """
+    async def __aenter__(self):
+        print('__aenter__ for PowerSensor')
+
+    async def __aexit__(self, *_):
+        print('__aexit__ Clean up for PowerSensor')
+        self.client.disconnect()
+        asyncio.sleep(5)
+
     def __init__(self, state, address):
         self.state = state
         self.address = address

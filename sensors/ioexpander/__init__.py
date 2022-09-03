@@ -58,7 +58,7 @@ async def monitor_battery(state):
             state.battery_level = adc
             last_adc = adc
 
-        await asyncio.sleep(60)
+        await asyncio.sleep(60.0)
 
 if __name__ == "__main__":
     last_value = io.HIGH
