@@ -7,9 +7,8 @@ ormar==0.10.24
 aiosqlite==0.17.0
 alembic==1.7.5
 
-#GPS
-pyserial==3.5b0
-pyserial-asyncio==0.6
+#GPS - Stemma MiniGPS
+pa1010d
 pynmea2==1.18.0
 
 #bluetooth
@@ -18,10 +17,6 @@ pycycling==0.1.0
 
 # Utils
 backoff==1.11.1
-
-# MCP2221
-#hidapi==0.11.0.post2
-#adafruit-blinka
 
 # Pressure/Temp
 adafruit-circuitpython-bmp3xx
