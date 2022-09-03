@@ -7,13 +7,16 @@ import asyncio
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi_crudrouter import OrmarCRUDRouter
+from bleak import BleakScanner
 
 from model.db import database, Rides, Blesensors, Gpsreadings, Hrreadings, Powerreadings
 from api import rides
-from sensors.gps import Gps
+
 from sensors.ble import HrSensor, PowerSensor, SensorScanner
 from sensors.ble.discover import discover_devices
-from sensors import pico
+from sensors import gps
+from sensors import ioexpander 
+from sensors import bmp388
 
 # Globals
 app = FastAPI()
@@ -32,15 +35,12 @@ hypecycleState = type('', (), {})()
 hypecycleState.gps_active = True
 hypecycleState.hr_available = False
 hypecycleState.power_available = False
-hypecycleState.ride_paused = False # When this is true we should
+hypecycleState.ride_paused = False # When this is true we should record data
 hypecycleState.is_active = False # is_active = True when we have an Current/active ride in the DB
+hypecycleState.battery_level = 100.0
 
 ble_sensors_active = asyncio.Event() # single to indicate if BLE devices should be active or not
 
-# Create our GPS instance
-gps = Gps(hypecycleState)
-
-#Todo: remove this test route
 @app.get("/location")
 async def get_location():
     try:
@@ -52,7 +52,6 @@ async def get_location():
                 "gps_time": None
             }
 
-#Todo: remove this test route
 @app.get("/altitude")
 async def get_altitude():
     try:
@@ -62,23 +61,27 @@ async def get_altitude():
                 "gps_altitude": 0.0
             }
 
-#Todo: remove this test route
 @app.get("/speed")
 async def get_speed():
     return hypecycleState.speed
 
-#Todo: remove this test route
 @app.get("/bpm")
 async def get_bpm():
     try:
         return hypecycleState.bpm
     except AttributeError:
-        return { "bpm": 0 }
+        return 0 
 
-#Todo: remove this test route
+@app.get("/instant_power")
+async def get_instant_power():
+    try:
+        return hypecycleState.instantaneous_power
+    except AttributeError:
+        return  0 
+
 @app.get("/status")
 async def get_fix():
-    return { "gps_fix" : gps.is_gps_quality_ok, 
+    return { "gps_fix" : hypecycleState.fix_quality, 
             "heart_rate": hypecycleState.hr_available, 
             "power": hypecycleState.power_available, 
             "battery": hypecycleState.battery_level, 
@@ -96,29 +99,26 @@ async def startup() -> None:
         await database_.connect()
     # Launch our BLE and GPS monitor tasks here
     # Spawn GPS monitoring task
-    gps_task = asyncio.create_task(gps.start())
-    # enviro_task = asyncio.create_task(pico.monitor_pressure_temp(hypecycleState))
-    battery_task = asyncio.create_task(pico.monitor_battery_level(hypecycleState))
-    buttons_task = asyncio.create_task(pico.monitor_buttons(hypecycleState))
-   
+    gps_task = asyncio.create_task(gps.monitor_gps(hypecycleState))
+    enviro_task = asyncio.create_task(bmp388.monitor_pressure_temp(hypecycleState))
+    button_task = asyncio.create_task(ioexpander.monitor_buttons(hypecycleState))
+    battery_task = asyncio.create_task(ioexpander.monitor_battery(hypecycleState))
+    
+
     #Todo: get address and type from DB of blesensors
     # address = "F0:99:19:59:B4:00" # Forerunner HR
     # address = "D9:38:0B:2E:22:DD" #HRM-pro : Tacx neo = "F1:01:52:E2:90:FA"
     addresses = ["F0:99:19:59:B4:00", "F1:01:52:E2:90:FA"]
-    scanner = SensorScanner()
-    devices, not_found = await scanner.scan_for_devices(addresses)
-    print(devices)
-    print("Couldn't find: ", not_found)
-    # Todo: make the below more robust, currently always have to have both sensors found
-    for device in devices:
-        if device.address == addresses[0]: 
-            # Start heart rate monitor 
-            hypecycleState.hrm = HrSensor(hypecycleState, devices[0])
-            hr_task = asyncio.create_task(hypecycleState.hrm.start(ble_sensors_active))
-        if len(devices) > 1 and device.address == addresses[1]:
-            # Start power meter monitor
-            hypecycleState.powermeter = PowerSensor(hypecycleState, devices[1])
-            power_task = asyncio.create_task(hypecycleState.powermeter.start(ble_sensors_active))
+    
+    hrm = await BleakScanner.find_device_by_address("D9:38:0B:2E:22:DD",timeout=10.0)
+    power = await BleakScanner.find_device_by_address("F1:01:52:E2:90:FA",timeout=10.0)
+
+    # Start HR
+    hypecycleState.hrm = HrSensor(hypecycleState, hrm)
+    hr_task = asyncio.create_task(hypecycleState.hrm.start(ble_sensors_active))
+    # Start Power
+    hypecycleState.powermeter = PowerSensor(hypecycleState, power)
+    power_task = asyncio.create_task(hypecycleState.powermeter.start(ble_sensors_active))
 
 @app.on_event("shutdown")
 async def shutdown() -> None:

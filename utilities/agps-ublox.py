@@ -65,8 +65,8 @@ if __name__ == '__main__':
         print('Error: you need to use both latitude and longitude', file=sys.stderr)
         sys.exit(1)
 
-    url = f'https://online-live1.services.u-blox.com/GetOnlineData.ashx?token={args.token};gnss=gps;datatype=eph,alm,aux,pos;filteronpos;format={args.format}'
-    #url = f'https://offline-live1.services.u-blox.com/GetOfflineData.ashx?token={args.token};gnss=gps,glo;format={args.format}'
+    #url = f'https://online-live1.services.u-blox.com/GetOnlineData.ashx?token={args.token};gnss=gps;datatype=eph,alm,aux,pos;filteronpos;format={args.format}'
+    url = f'https://offline-live1.services.u-blox.com/GetOfflineData.ashx?token={args.token};gnss=gps,glo,gal,bds;format={args.format}'
     if args.lat and args.lon:
         if args.lat > 90 or args.lat < -90 or args.lon > 180 or args.lon < -180:
             print('Error: latitude or longitude not in expected range', file=sys.stderr)
@@ -92,12 +92,12 @@ if __name__ == '__main__':
         print(f'Error {r.status_code} {r.content.decode()}', file=sys.stderr)
         sys.exit(1)
 
-    # check the checksum of the downloaded data
-    if is_data_valid(r.content, args.debug):
-        print('Checksums are OK')
-    else:
-        print('Error: checksums are NOT OK', file=sys.stderr)
-        sys.exit(1)
+    # # check the checksum of the downloaded data
+    # if is_data_valid(r.content, args.debug):
+    #     print('Checksums are OK')
+    # else:
+    #     print('Error: checksums are NOT OK', file=sys.stderr)
+    #     sys.exit(1)
 
     ser = serial.Serial(args.device, 9600)
     print('Waiting for GPS to be free')
