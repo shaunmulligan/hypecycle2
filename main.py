@@ -121,18 +121,24 @@ async def startup() -> None:
         for sensor in ble_sensors:
             if sensor.sensor_type == "Heart Rate":
                 print("Trying to connect to HRM: ", sensor.name)
-                hrm = await BleakScanner.find_device_by_address(sensor.address,timeout=20.0)
-                # Start HRM
-                hypecycleState.hrm = HrSensor(hypecycleState, hrm)
-                hr_task = asyncio.create_task(hypecycleState.hrm.start(ble_sensors_active))
-            elif sensor.sensor_type == "Cycling Power":
+                hrm = await BleakScanner.find_device_by_address(sensor.address,timeout=15.0)
+                if hrm is not None:
+                    # Start HRM
+                    hypecycleState.hrm = HrSensor(hypecycleState, hrm)
+                    hr_task = asyncio.create_task(hypecycleState.hrm.start(ble_sensors_active))
+                else:
+                    print("couldn't find {} at address: {}".format(sensor.name, sensor.address))
+            elif sensor.sensor_type == "Cycling Power":      
                 print("Trying to connect to PM: ", sensor.name)
-                power = await BleakScanner.find_device_by_address(sensor.address,timeout=20.0)
-                # Start Power
-                hypecycleState.powermeter = PowerSensor(hypecycleState, power)
-                power_task = asyncio.create_task(hypecycleState.powermeter.start(ble_sensors_active))
+                power = await BleakScanner.find_device_by_address(sensor.address,timeout=5.0)
+                if power is not None:
+                    # Start Power
+                    hypecycleState.powermeter = PowerSensor(hypecycleState, power)
+                    power_task = asyncio.create_task(hypecycleState.powermeter.start(ble_sensors_active))
+                else:
+                    print("couldn't find {} at address: {}".format(sensor.name, sensor.address))
             else:
-                print("This sensor type is not currently supported")
+                print("This sensor {} of type {} is not currently supported".format(sensor.name, sensor.address))
     else:
         print("You don't have any BLE devices paired, please pair one!")
 
