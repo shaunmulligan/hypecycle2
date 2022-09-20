@@ -34,7 +34,7 @@ class HrSensor(object):
             print("Heartrate Monitor disconnected")
             self.state.hr_available = False
 
-        async with BleakClient(self.address, loop=self.asyncio_loop, timeout=5.0, disconnected_callback=disconnect_handler) as client:
+        async with BleakClient(self.address, loop=self.asyncio_loop, timeout=10.0, disconnected_callback=disconnect_handler) as client:
             # Set the instance client so we can clean up later.
             self.client = client
             
