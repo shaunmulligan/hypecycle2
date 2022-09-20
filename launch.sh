@@ -7,5 +7,7 @@ else
     echo "$FILE exists."
 fi
 
+# Clear BLE devices cache before start
+sudo rm -rf /var/lib/bluetooth/B8:27:EB:79:D0:BF/cache
 
 python -m uvicorn main:app --reload --workers 1 --host 0.0.0.0 --port 8001 --lifespan on

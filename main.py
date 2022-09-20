@@ -12,7 +12,7 @@ from bleak import BleakScanner
 from model.db import database, Rides, Blesensors, Gpsreadings, Hrreadings, Powerreadings
 from api import rides
 
-from sensors.ble import HrSensor, PowerSensor, SensorScanner
+from sensors.ble import HrSensor, PowerSensor
 from sensors.ble.discover import discover_devices
 from sensors import gps
 from sensors import ioexpander 
@@ -80,7 +80,7 @@ async def get_instant_power():
         return  0 
 
 @app.get("/status")
-async def get_fix():
+async def get_status():
     return { "gps_fix" : hypecycleState.fix_quality, 
             "heart_rate": hypecycleState.hr_available, 
             "power": hypecycleState.power_available, 
@@ -103,37 +103,38 @@ async def startup() -> None:
     enviro_task = asyncio.create_task(bmp388.monitor_pressure_temp(hypecycleState))
     button_task = asyncio.create_task(ioexpander.monitor_buttons(hypecycleState))
     battery_task = asyncio.create_task(ioexpander.monitor_battery(hypecycleState))
-    
 
-    #Todo: get address and type from DB of blesensors
-    # address = "F0:99:19:59:B4:00" # Forerunner HR
-    # address = "D9:38:0B:2E:22:DD" #HRM-pro : Tacx neo = "F1:01:52:E2:90:FA"
-    
+    # Testing Devices:
+    # "F0:99:19:59:B4:00" - Forerunner HR
+    # "D9:38:0B:2E:22:DD" - HRM-pro 
+    # "F1:01:52:E2:90:FA" - Tacx neo 2T
+    # "D1:7F:6A:25:D9:D7" - Assioma Duos
+
     ble_sensors = await Blesensors.objects.all()
     print("---------")
-    print("BLE sensors")
+    print("Paired BLE sensors")
     print(ble_sensors)
     print("---------")
-    addresses = ["F0:99:19:59:B4:00", "F1:01:52:E2:90:FA"]
+
     #TODO: Handle case where we have multiple PM and HRM devices paired.
-    for sensor in ble_sensors:
-        if sensor.sensor_type == "Heart Rate":
-            print("Trying to connect to HRM: ", sensor.name)
-            hrm = await BleakScanner.find_device_by_address(sensor.address,timeout=20.0)
-            # Start HR
-            hypecycleState.hrm = HrSensor(hypecycleState, hrm)
-            hr_task = asyncio.create_task(hypecycleState.hrm.start(ble_sensors_active))
-        elif sensor.sensor_type == "Cycling Power":
-            print("Trying to connect to PM: ", sensor.name)
-            power = await BleakScanner.find_device_by_address(sensor.address,timeout=20.0)
-            # Start Power
-            hypecycleState.powermeter = PowerSensor(hypecycleState, power)
-            power_task = asyncio.create_task(hypecycleState.powermeter.start(ble_sensors_active))
-        else:
-            print("No BLE sensors paired, please pair some")
-
-
-
+    if ble_sensors is not []:
+        for sensor in ble_sensors:
+            if sensor.sensor_type == "Heart Rate":
+                print("Trying to connect to HRM: ", sensor.name)
+                hrm = await BleakScanner.find_device_by_address(sensor.address,timeout=20.0)
+                # Start HRM
+                hypecycleState.hrm = HrSensor(hypecycleState, hrm)
+                hr_task = asyncio.create_task(hypecycleState.hrm.start(ble_sensors_active))
+            elif sensor.sensor_type == "Cycling Power":
+                print("Trying to connect to PM: ", sensor.name)
+                power = await BleakScanner.find_device_by_address(sensor.address,timeout=20.0)
+                # Start Power
+                hypecycleState.powermeter = PowerSensor(hypecycleState, power)
+                power_task = asyncio.create_task(hypecycleState.powermeter.start(ble_sensors_active))
+            else:
+                print("This sensor type is not currently supported")
+    else:
+        print("You don't have any BLE devices paired, please pair one!")
 
 @app.on_event("shutdown")
 async def shutdown() -> None:

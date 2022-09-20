@@ -34,7 +34,7 @@ class HrSensor(object):
             print("Heartrate Monitor disconnected")
             self.state.hr_available = False
 
-        async with BleakClient(self.address, loop=self.asyncio_loop, timeout=10.0, disconnected_callback=disconnect_handler) as client:
+        async with BleakClient(self.address, loop=self.asyncio_loop, timeout=5.0, disconnected_callback=disconnect_handler) as client:
             # Set the instance client so we can clean up later.
             self.client = client
             
@@ -84,6 +84,7 @@ class PowerSensor(object):
     async def start(self, sensor_active):
         self.asyncio_loop = asyncio.get_event_loop()
         print("starting Power sensor monitor loop on ", self.address)
+        
         def disconnect_handler(client):
             print("Power Meter disconnected")
             self.state.power_available = False
@@ -96,8 +97,7 @@ class PowerSensor(object):
                 current_crank_revs = data.cumulative_crank_revs
                 current_crank_event_time = data.last_crank_event_time
                 print("Instantaneous Power: ", data.instantaneous_power)
-                # print("cumulative_crank_revs: ", data.cumulative_crank_revs)
-                # print("last_crank_event_time: ", data.last_crank_event_time)
+
                 time_diff = (current_crank_event_time - self.previous_crank_event_time)*(1/1024)
                 if time_diff != 0:
                     rps = (current_crank_revs - self.previous_crank_revs)/time_diff
@@ -128,39 +128,3 @@ class PowerSensor(object):
     async def stop(self):
         await self.power_service.disable_cycling_power_measurement_notifications()
         await self.client.disconnect()
-
-class SensorScanner(object):
-    """ BLE sensor scanner class """
-    # def __init__(self):
-    #     self.addresses = []
-
-    async def scan_for_devices(self, addresses: List[str]) -> List[BLEDevice]:
-        addresses = [a.lower() for a in addresses]
-        undetected_devices = []
-        s = BleakScanner()
-        print("Detecting devices...")
-        devices = [await s.find_device_by_address(address, timeout=5.0) for address in addresses]
-        for d in devices:
-            if d:
-                print(f"Detected {d}...")
-        if None in devices:
-            # We did not find all desired devices...
-            undetected_devices = list(
-                set(addresses).difference(
-                    list(
-                        filter(
-                            lambda x: x in [d.address.lower() for d in devices if d],
-                            addresses,
-                        )
-                    )
-                )
-            )
-            devices = [i for i in devices if i] # Remove None from devices list
-        return devices, undetected_devices
-
-# Tacx Neo 2T output
-#CyclingPowerMeasurement(instantaneous_power=0, accumulated_energy=None, pedal_power_balance=None, accumulated_torque=None, cumulative_wheel_revs=165, last_wheel_event_time=0, cumulative_crank_revs=0, last_crank_event_time=0, maximum_force_magnitude=None, minimum_force_magnitude=None, maximum_torque_magnitude=None, minimum_torque_magnitude=None, top_dead_spot_angle=None, bottom_dead_spot_angle=None)
-# 4iii powermeter output
-#CyclingPowerMeasurement(instantaneous_power=10, accumulated_energy=None, pedal_power_balance=None, accumulated_torque=66, cumulative_wheel_revs=None, last_wheel_event_time=None, cumulative_crank_revs=7, last_crank_event_time=11248, maximum_force_magnitude=None, minimum_force_magnitude=None, maximum_torque_magnitude=None, minimum_torque_magnitude=None, top_dead_spot_angle=None, bottom_dead_spot_angle=None)
-
-#Cadence = (Difference in two successive Cumulative Crank Revolution values) / (Difference in two successive Last Crank Event Time values)
