@@ -92,18 +92,8 @@ async def get_status():
 async def discover_ble_devices():
     return await discover_devices()
 
-@app.on_event("startup")
-async def startup() -> None:
-    database_ = app.state.database
-    if not database_.is_connected:
-        await database_.connect()
-    # Launch our BLE and GPS monitor tasks here
-    # Spawn GPS monitoring task
-    gps_task = asyncio.create_task(gps.monitor_gps(hypecycleState))
-    enviro_task = asyncio.create_task(bmp388.monitor_pressure_temp(hypecycleState))
-    button_task = asyncio.create_task(ioexpander.monitor_buttons(hypecycleState))
-    battery_task = asyncio.create_task(ioexpander.monitor_battery(hypecycleState))
-
+@app.get("/connect")
+async def connect_ble_devices():
     # Testing Devices:
     # "F0:99:19:59:B4:00" - Forerunner HR
     # "D9:38:0B:2E:22:DD" - HRM-pro 
@@ -121,7 +111,7 @@ async def startup() -> None:
         for sensor in ble_sensors:
             if sensor.sensor_type == "Heart Rate":
                 print("Trying to connect to HRM: ", sensor.name)
-                hrm = await BleakScanner.find_device_by_address(sensor.address,timeout=15.0)
+                hrm = await BleakScanner.find_device_by_address(sensor.address,timeout=10.0)
                 if hrm is not None:
                     # Start HRM
                     hypecycleState.hrm = HrSensor(hypecycleState, hrm)
@@ -139,8 +129,24 @@ async def startup() -> None:
                     print("couldn't find {} at address: {}".format(sensor.name, sensor.address))
             else:
                 print("This sensor {} of type {} is not currently supported".format(sensor.name, sensor.address))
+        return {"status": "HRM is {} and PM is {}".format(hypecycleState.hr_available, hypecycleState.power_available)}
     else:
         print("You don't have any BLE devices paired, please pair one!")
+        return {"status": "You don't have any BLE devices paired, please pair one!"}
+
+@app.on_event("startup")
+async def startup() -> None:
+    database_ = app.state.database
+    if not database_.is_connected:
+        await database_.connect()
+    # Launch our BLE and GPS monitor tasks here
+    # Spawn GPS monitoring task
+    gps_task = asyncio.create_task(gps.monitor_gps(hypecycleState))
+    enviro_task = asyncio.create_task(bmp388.monitor_pressure_temp(hypecycleState))
+    button_task = asyncio.create_task(ioexpander.monitor_buttons(hypecycleState))
+    battery_task = asyncio.create_task(ioexpander.monitor_battery(hypecycleState))
+
+    
 
 @app.on_event("shutdown")
 async def shutdown() -> None:
