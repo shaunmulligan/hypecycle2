@@ -13,7 +13,7 @@ async def main():
 
 async def discover_devices():
     """Discover all nearby relevant BLE devices and return them as a list"""
-    raw_devices = await discover()
+    raw_devices = await discover(timeout=10.0)
     devices = []
     for d in raw_devices:
         info = await get_device_info(d)
