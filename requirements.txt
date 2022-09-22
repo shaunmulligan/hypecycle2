@@ -6,6 +6,7 @@ uvicorn==0.17.0
 ormar==0.10.24
 aiosqlite==0.17.0
 alembic==1.7.5
+websockets
 
 #GPS - Stemma MiniGPS
 pa1010d

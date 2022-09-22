@@ -1,5 +1,5 @@
 from typing import List, Optional
-
+import json
 import databases
 import sqlalchemy
 import uvicorn
@@ -7,10 +7,13 @@ import asyncio
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi_crudrouter import OrmarCRUDRouter
+from fastapi import WebSocket, WebSocketDisconnect
+
 from bleak import BleakScanner
 
 from model.db import database, Rides, Blesensors, Gpsreadings, Hrreadings, Powerreadings
 from api import rides
+from lib.connectionmanager import ConnectionManager
 
 from sensors.ble import HrSensor, PowerSensor
 from sensors.ble.discover import discover_devices
@@ -31,15 +34,29 @@ app.add_middleware(
 app.state.database = database
 
 # Shared State
-hypecycleState = type('', (), {})()
+hypecycleState = type('SharedData', (), {})()
 hypecycleState.gps_active = True
 hypecycleState.hr_available = False
 hypecycleState.power_available = False
 hypecycleState.ride_paused = False # When this is true we should record data
 hypecycleState.is_active = False # is_active = True when we have an Current/active ride in the DB
 hypecycleState.battery_level = 100.0
+hypecycleState.fix_quality = 0.0
+hypecycleState.instantaneous_power = 0.0
+hypecycleState.bpm = 0.0
+hypecycleState.speed = 0.0
+hypecycleState.gps_altitude = 0.0
+hypecycleState.altitude = 0.0
+hypecycleState.location = {
+                "latitude": 0.0,
+                "longitude": 0.0,
+                # "gps_time": None
+            }
 
 ble_sensors_active = asyncio.Event() # single to indicate if BLE devices should be active or not
+
+# Create our websocket manager
+manager = ConnectionManager()
 
 @app.get("/location")
 async def get_location():
@@ -49,7 +66,7 @@ async def get_location():
         return {
                 "latitude": 0.0,
                 "longitude": 0.0,
-                "gps_time": None
+                # "gps_time": None
             }
 
 @app.get("/altitude")
@@ -86,7 +103,8 @@ async def get_status():
             "power": hypecycleState.power_available, 
             "battery": hypecycleState.battery_level, 
             "is_active": hypecycleState.is_active,
-            "ride_paused": hypecycleState.ride_paused }
+            "ride_paused": hypecycleState.ride_paused,
+            }
 
 @app.get("/discover")
 async def discover_ble_devices():
@@ -134,6 +152,32 @@ async def connect_ble_devices():
         print("You don't have any BLE devices paired, please pair one!")
         return {"status": "You don't have any BLE devices paired, please pair one!"}
 
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    await manager.connect(websocket)
+    try:
+        while True:
+            state = { "gps_fix" : hypecycleState.fix_quality, 
+            "heart_rate": hypecycleState.hr_available, 
+            "power": hypecycleState.power_available, 
+            "battery": hypecycleState.battery_level, 
+            "is_active": hypecycleState.is_active,
+            "ride_paused": hypecycleState.ride_paused,
+            "instantaneous_power": hypecycleState.instantaneous_power,
+            "bpm": hypecycleState.bpm,
+            "speed": hypecycleState.speed,
+            "gps_altitude": float(hypecycleState.gps_altitude or 0.0),
+            "altitude": float(hypecycleState.altitude or 0.0),
+            "location": hypecycleState.location
+             }
+
+            await websocket.send_json(state)
+            await asyncio.sleep(1) # Send shared state once every second
+    except WebSocketDisconnect:
+        manager.disconnect(websocket)
+    except asyncio.exceptions.CancelledError:
+        manager.disconnect(websocket)
+
 @app.on_event("startup")
 async def startup() -> None:
     database_ = app.state.database
@@ -145,8 +189,6 @@ async def startup() -> None:
     enviro_task = asyncio.create_task(bmp388.monitor_pressure_temp(hypecycleState))
     button_task = asyncio.create_task(ioexpander.monitor_buttons(hypecycleState))
     battery_task = asyncio.create_task(ioexpander.monitor_battery(hypecycleState))
-
-    
 
 @app.on_event("shutdown")
 async def shutdown() -> None:
