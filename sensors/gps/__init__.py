@@ -32,7 +32,7 @@ async def monitor_gps(state):
             state.location = {
                 "latitude": gps.latitude,
                 "longitude": gps.longitude,
-                "gps_time": gps.timestamp
+                # "gps_time": gps.timestamp
             }
             state.speed = gps.speed_over_ground
         await asyncio.sleep(1.0)

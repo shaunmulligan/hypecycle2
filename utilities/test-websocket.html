@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Data</title>
+    </head>
+    <body>
+        <h1>WebSocket Data</h1>
+        <ul id='data'>
+        </ul>
+        <script>
+            var ws = new WebSocket("ws://hypecycle3.local:8001/ws");
+            ws.onmessage = function(event) {
+                var messages = document.getElementById('data')
+                var message = document.createElement('li')
+                var content = document.createTextNode(event.data)
+                message.appendChild(content)
+                messages.appendChild(message)
+            };
+        </script>
+    </body>
+</html>
