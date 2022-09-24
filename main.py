@@ -53,6 +53,8 @@ hypecycleState.location = {
                 "longitude": 0.0,
                 # "gps_time": None
             }
+hypecycleState.latitude = 0.0
+hypecycleState.longitude = 0.0
 
 ble_sensors_active = asyncio.Event() # single to indicate if BLE devices should be active or not
 
@@ -171,6 +173,8 @@ async def websocket_endpoint(websocket: WebSocket):
             "altitude": float(hypecycleState.altitude or 0.0),
             "location": hypecycleState.location,
             "temperature": hypecycleState.temperature,
+            "latitude": hypecycleState.latitude,
+            "longitude": hypecycleState.longitude,
              }
 
             await websocket.send_json(state)
