@@ -25,7 +25,8 @@ adafruit-circuitpython-bmp3xx
 # IO Expander
 pimoroni-ioexpander
 
-
+# Camera
+picamera2
 
 
 
