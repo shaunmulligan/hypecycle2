@@ -47,6 +47,7 @@ hypecycleState.bpm = 0.0
 hypecycleState.speed = 0.0
 hypecycleState.gps_altitude = 0.0
 hypecycleState.altitude = 0.0
+hypecycleState.temperature = 0.0
 hypecycleState.location = {
                 "latitude": 0.0,
                 "longitude": 0.0,
@@ -168,7 +169,8 @@ async def websocket_endpoint(websocket: WebSocket):
             "speed": hypecycleState.speed,
             "gps_altitude": float(hypecycleState.gps_altitude or 0.0),
             "altitude": float(hypecycleState.altitude or 0.0),
-            "location": hypecycleState.location
+            "location": hypecycleState.location,
+            "temperature": hypecycleState.temperature,
              }
 
             await websocket.send_json(state)
