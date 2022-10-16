@@ -48,6 +48,7 @@ hypecycleState.instantaneous_power = 0
 hypecycleState.cadence = 0
 hypecycleState.bpm = 0
 hypecycleState.speed = 0.0
+hypecycleState.max_speed = 0.0
 hypecycleState.gps_altitude = 0.0
 hypecycleState.altitude = 0.0
 hypecycleState.temperature = 0.0
@@ -58,6 +59,11 @@ hypecycleState.location = {
             }
 hypecycleState.latitude = 0.0
 hypecycleState.longitude = 0.0
+hypecycleState.distance = 0
+hypecycleState.moving_time = 0
+hypecycleState.stopped_time = 0
+hypecycleState.uphill = 0
+hypecycleState.downhill = 0
 
 ble_sensors_active = asyncio.Event() # single to indicate if BLE devices should be active or not
 
@@ -182,6 +188,11 @@ async def websocket_endpoint(websocket: WebSocket):
             "temperature": hypecycleState.temperature,
             "latitude": hypecycleState.latitude,
             "longitude": hypecycleState.longitude,
+            "distance": hypecycleState.distance,
+            "uphill": hypecycleState.uphill,
+            "downhill": hypecycleState.downhill,
+            "moving_time": hypecycleState.moving_time,
+            "stopped_time": hypecycleState.stopped_time,
              }
 
             await websocket.send_json(state)
@@ -203,6 +214,7 @@ async def startup() -> None:
     button_task = asyncio.create_task(ioexpander.monitor_buttons(hypecycleState))
     battery_task = asyncio.create_task(ioexpander.monitor_battery(hypecycleState))
     recorder_task = asyncio.create_task(recorder.monitor_recording(hypecycleState,interval=1))
+    averages_task = asyncio.create_task(recorder.monitor_averages(hypecycleState))
 
 @app.on_event("shutdown")
 async def shutdown() -> None:

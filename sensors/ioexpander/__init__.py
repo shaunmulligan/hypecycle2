@@ -7,7 +7,7 @@ import gpxpy
 import gpxpy.gpx
 
 from model.db import Rides
-from lib.recorder.files import generate_gpx
+from lib.recorder.files import generate_gpx, write_gpx_file
 
 BTN_1 = 14
 BTN_2 = 12
@@ -54,7 +54,8 @@ async def monitor_buttons(state):
                     ride = await cur_ride.update(active=False) # TODO: add endtime stamp here
                     print("Stop ride requested by button press...")
                     # Generate GPX file.
-                    await generate_gpx(ride.id)
+                    gpx_data = await generate_gpx(ride.id)
+                    await write_gpx_file(gpx_data)
                 else:
                     print("No active ride to stop... so starting a new ride")
                     # Create a new ride TODO: Generate interesting names here

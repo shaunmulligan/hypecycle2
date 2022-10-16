@@ -22,7 +22,7 @@ def get_point(lat, lon, ele, power, temp, hr, cadence, time):
 
 async def generate_gpx(id):
     """Generate GPX file from a ride in the DB"""
-    print("Saving GPX file for ride {}".format(id))
+
     loc = await Gpsreadings.objects.filter(ride_id=id).all()
     hr = await Hrreadings.objects.filter(ride_id=id).all()
     power = await Powerreadings.objects.filter(ride_id=id).all()
@@ -42,7 +42,10 @@ async def generate_gpx(id):
         point = get_point(loc[x].latitude,loc[x].longitude, loc[x].altitude, power[x].power, enviro[x].temp, hr[x].bpm, power[x].cadence, loc[x].timestamp)
         gpx_segment.points.append(point)
     
+    return gpx
+
+async def write_gpx_file(gpx):
     # Create GPX file with current datetime
     filename = "data/" + datetime.now().strftime("%Y_%m_%d-%I_%M_%S_%p") + ".gpx"
-    with open(filename, "w") as f:
-        f.write( gpx.to_xml())
+    with open(filename, "w") as f: 
+        f.write(gpx.to_xml()) #TODO: this probably needs to be asyncio compat??
