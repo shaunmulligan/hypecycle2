@@ -47,10 +47,14 @@ async def monitor_buttons(state):
                 cur_ride = await Rides.objects.filter(active=True).get_or_none()
                 if cur_ride:
                     # Change ride active state to false
-                    ride = await cur_ride.update(active=False)
+                    ride = await cur_ride.update(active=False) # TODO: add endtime stamp here
                     print("Stop ride requested by button press...")
                 else:
-                    print("No active ride to stop...")
+                    print("No active ride to stop... so starting a new ride")
+                    # Create a new ride TODO: Generate interesting names here
+                    ride = Rides(name="New Ride")
+                    await ride.save()
+
             await asyncio.sleep(1.0 / 30)
         elif button_3 != button_3_last:
             print("Button 3 has been {}".format("released" if button_3 else "pressed"))

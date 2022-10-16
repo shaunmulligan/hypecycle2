@@ -11,9 +11,10 @@ from fastapi import WebSocket, WebSocketDisconnect
 
 from bleak import BleakScanner
 
-from model.db import database, Rides, Blesensors, Gpsreadings, Hrreadings, Powerreadings
+from model.db import database, Rides, Blesensors, Gpsreadings, Hrreadings, Powerreadings, Enviroreadings
 from api import rides
 from lib.connectionmanager import ConnectionManager
+from lib import recorder
 
 from sensors.ble import HrSensor, PowerSensor
 from sensors.ble.discover import discover_devices
@@ -41,9 +42,10 @@ hypecycleState.power_available = False
 hypecycleState.ride_paused = False # When this is true we should record data
 hypecycleState.is_active = False # is_active = True when we have an Current/active ride in the DB
 hypecycleState.battery_level = 100.0
-hypecycleState.fix_quality = 0.0
-hypecycleState.instantaneous_power = 0.0
-hypecycleState.bpm = 0.0
+hypecycleState.fix_quality = 0
+hypecycleState.instantaneous_power = 0
+hypecycleState.cadence = 0
+hypecycleState.bpm = 0
 hypecycleState.speed = 0.0
 hypecycleState.gps_altitude = 0.0
 hypecycleState.altitude = 0.0
@@ -195,6 +197,7 @@ async def startup() -> None:
     enviro_task = asyncio.create_task(bmp388.monitor_pressure_temp(hypecycleState))
     button_task = asyncio.create_task(ioexpander.monitor_buttons(hypecycleState))
     battery_task = asyncio.create_task(ioexpander.monitor_battery(hypecycleState))
+    recorder_task = asyncio.create_task(recorder.monitor_recording(hypecycleState,interval=10))
 
 @app.on_event("shutdown")
 async def shutdown() -> None:
@@ -220,6 +223,7 @@ app.include_router(OrmarCRUDRouter(schema=Blesensors, prefix="sensors",))
 app.include_router(OrmarCRUDRouter(schema=Gpsreadings, prefix="gps",))
 app.include_router(OrmarCRUDRouter(schema=Hrreadings, prefix="heart_rate",))
 app.include_router(OrmarCRUDRouter(schema=Powerreadings, prefix="power",))
+app.include_router(OrmarCRUDRouter(schema=Enviroreadings, prefix="enviroment"))
 
 # Custom Routes
 app.include_router(rides.router, prefix="/rides", tags=["Rides"])
