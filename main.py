@@ -203,6 +203,7 @@ async def startup() -> None:
     button_task = asyncio.create_task(ioexpander.monitor_buttons(hypecycleState))
     battery_task = asyncio.create_task(ioexpander.monitor_battery(hypecycleState))
     recorder_task = asyncio.create_task(recorder.monitor_recording(hypecycleState,interval=1))
+    averages_task = asyncio.create_task(recorder.monitor_averages(hypecycleState))
 
 @app.on_event("shutdown")
 async def shutdown() -> None:
