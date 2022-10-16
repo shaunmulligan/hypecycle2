@@ -50,7 +50,7 @@ class Hrreadings(ormar.Model):
     id: int = ormar.Integer(primary_key=True)
     timestamp: datetime = ormar.DateTime(default=datetime.datetime.now, timezone=False)
     ride_id: Optional[Rides] = ormar.ForeignKey(Rides, nullable=True, skip_reverse=True)
-    bpm: int = ormar.Integer()
+    bpm: int = ormar.Integer(default=0)
 
 class Powerreadings(ormar.Model):
     class Meta(BaseMeta):
@@ -59,5 +59,26 @@ class Powerreadings(ormar.Model):
     id: int = ormar.Integer(primary_key=True)
     timestamp: datetime = ormar.DateTime(default=datetime.datetime.now, timezone=False)
     ride_id: Optional[Rides] = ormar.ForeignKey(Rides, nullable=True, skip_reverse=True)
-    power: int = ormar.Integer()
-    cadence: int = ormar.Integer()
+    power: int = ormar.Integer(default=0)
+    cadence: int = ormar.Integer(default=0)
+
+class Enviroreadings(ormar.Model):
+    class Meta(BaseMeta):
+        tablename = "enviroreadings"
+
+    id: int = ormar.Integer(primary_key=True)
+    timestamp: datetime = ormar.DateTime(default=datetime.datetime.now, timezone=False)
+    ride_id: Optional[Rides] = ormar.ForeignKey(Rides, nullable=True, skip_reverse=True)
+    temp: float = ormar.Float(default=0.0)
+    altitude: float = ormar.Float(default=0.0)
+
+
+def main():
+    print("boot strapping DB")
+    engine = sqlalchemy.create_engine("sqlite:///db.sqlite")
+    # note that this has to be the same metadata that is used in ormar Models definition
+    metadata.create_all(engine)
+
+
+if __name__ == "__main__":
+    main()

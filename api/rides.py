@@ -14,7 +14,9 @@ async def get_current_ride():
 @router.put("/current/stop", response_model=Rides)
 async def stop_current_ride():
     cur_ride = await Rides.objects.filter(active=True).get_or_none()
-    ride = await cur_ride.update(active=False)
-    if not ride:
+    
+    if not cur_ride:
         raise HTTPException(status_code=404, detail="ride not found")
+    else:
+        ride = await cur_ride.update(active=False) # TODO: add endtime stamp here
     return ride
