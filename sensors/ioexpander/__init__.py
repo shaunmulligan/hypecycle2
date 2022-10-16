@@ -3,6 +3,9 @@ import time
 import asyncio
 import ioexpander as io
 
+import gpxpy
+import gpxpy.gpx
+
 from model.db import Rides
 
 BTN_1 = 14
@@ -49,6 +52,8 @@ async def monitor_buttons(state):
                     # Change ride active state to false
                     ride = await cur_ride.update(active=False) # TODO: add endtime stamp here
                     print("Stop ride requested by button press...")
+                    # Generate GPX file.
+
                 else:
                     print("No active ride to stop... so starting a new ride")
                     # Create a new ride TODO: Generate interesting names here
