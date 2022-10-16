@@ -29,16 +29,22 @@ async def monitor_averages(state, interval=60):
         if active_ride:
             gpx = await generate_gpx(active_ride.id) # TODO: this will probably be a bottleneck
             print("Distance: ", gpx.length_3d())
+            state.distance = gpx.length_3d()
             moving_data = gpx.get_moving_data()
             if moving_data:
                 print('Moving time: ', moving_data.moving_time)
+                state.moving_time = moving_data.moving_time
                 print('Stopped time: ', moving_data.stopped_time)
+                state.stopped_time = moving_data.stopped_time
                 print('Max speed: ' , moving_data.max_speed)
+                state.max_speed = moving_data.max_speed
                 print('Avg speed: ' , (moving_data.moving_distance / moving_data.moving_time) if moving_data.moving_time > 0 else "?")
 
                 uphill, downhill = gpx.get_uphill_downhill()
                 print('Total uphill: ', uphill)
+                state.uphill = uphill
                 print('Total downhill: ', downhill)
+                state.downhill = downhill
         else:
             print("no active ride, so no averages to calc")
 
