@@ -21,6 +21,7 @@ from sensors.ble.discover import discover_devices
 from sensors import gps
 from sensors import ioexpander 
 from sensors import bmp388
+from lib.recorder.files import generate_gpx
 
 # Globals
 app = FastAPI()
@@ -157,6 +158,10 @@ async def connect_ble_devices():
         print("You don't have any BLE devices paired, please pair one!")
         return {"status": "You don't have any BLE devices paired, please pair one!"}
 
+@app.get("/save/{ride_id}")
+async def save_gpx(ride_id):
+    return await generate_gpx(ride_id)
+
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     await manager.connect(websocket)
@@ -197,7 +202,7 @@ async def startup() -> None:
     enviro_task = asyncio.create_task(bmp388.monitor_pressure_temp(hypecycleState))
     button_task = asyncio.create_task(ioexpander.monitor_buttons(hypecycleState))
     battery_task = asyncio.create_task(ioexpander.monitor_battery(hypecycleState))
-    recorder_task = asyncio.create_task(recorder.monitor_recording(hypecycleState,interval=10))
+    recorder_task = asyncio.create_task(recorder.monitor_recording(hypecycleState,interval=1))
 
 @app.on_event("shutdown")
 async def shutdown() -> None:
