@@ -9,6 +9,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi_crudrouter import OrmarCRUDRouter
 from fastapi import WebSocket, WebSocketDisconnect
 
+import logging
+
 from bleak import BleakScanner
 
 from model.db import database, Rides, Blesensors, Gpsreadings, Hrreadings, Powerreadings, Enviroreadings
@@ -24,6 +26,8 @@ from sensors import bmp388
 from lib.recorder.files import generate_gpx
 
 # Globals
+# setup loggers
+logging.config.fileConfig('logging.conf', disable_existing_loggers=False)
 app = FastAPI()
 origins = ["*"]
 app.add_middleware(
@@ -245,5 +249,6 @@ app.include_router(OrmarCRUDRouter(schema=Enviroreadings, prefix="enviroment"))
 # Custom Routes
 app.include_router(rides.router, prefix="/rides", tags=["Rides"])
 if __name__ == "__main__":
+
     # to play with API run the script and visit http://0.0.0.0:8001/docs
     uvicorn.run(app, host="0.0.0.0", port=8001)
