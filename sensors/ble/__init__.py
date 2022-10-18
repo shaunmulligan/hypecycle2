@@ -39,7 +39,7 @@ class HrSensor(object):
             self.client = client
             
             def my_measurement_handler(data):   
-                print("Heart Rate: ",data.bpm)
+                # print("Heart Rate: ",data.bpm)
                 self.state.bpm = data.bpm
 
             while not client.is_connected:
@@ -96,7 +96,7 @@ class PowerSensor(object):
             def my_power_handler(data):
                 current_crank_revs = data.cumulative_crank_revs
                 current_crank_event_time = data.last_crank_event_time
-                print("Instantaneous Power: ", data.instantaneous_power)
+                # print("Instantaneous Power: ", data.instantaneous_power)
 
                 time_diff = (current_crank_event_time - self.previous_crank_event_time)*(1/1024)
                 if time_diff != 0:
@@ -107,7 +107,7 @@ class PowerSensor(object):
                 self.previous_crank_event_time = current_crank_event_time
                 self.previous_crank_revs = current_crank_revs
 
-                print("cadence: ", cadence)
+                # print("cadence: ", cadence)
                 self.state.instantaneous_power = data.instantaneous_power
                 self.state.cadence = cadence
 
