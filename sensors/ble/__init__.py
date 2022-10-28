@@ -8,6 +8,9 @@ from pycycling.heart_rate_service import HeartRateService
 from pycycling.cycling_power_service import CyclingPowerService
 from pycycling.cycling_speed_cadence_service import CyclingSpeedCadenceService
 
+import logging
+logger = logging.getLogger(__name__)
+
 class HrSensor(object):
     """ HRM BLE sensor class """
     async def __aenter__(self):
@@ -29,9 +32,11 @@ class HrSensor(object):
     # @backoff.on_exception(backoff.constant, (BleakError, asyncio.exceptions.TimeoutError), interval=5)
     async def start(self, sensor_active):
         self.asyncio_loop = asyncio.get_event_loop()
-        print("starting HR sensor monitor loop on ", self.address)
+        # print("starting HR sensor monitor loop on ", self.address)
+        logger.info("starting HR sensor monitor loop on {}".format(self.address))
         def disconnect_handler(client):
-            print("Heartrate Monitor disconnected")
+            # print("Heartrate Monitor disconnected")
+            logger.info("Heartrate Monitor disconnected!")
             self.state.hr_available = False
 
         async with BleakClient(self.address, loop=self.asyncio_loop, timeout=10.0, disconnected_callback=disconnect_handler) as client:
@@ -40,12 +45,15 @@ class HrSensor(object):
             
             def my_measurement_handler(data):   
                 # print("Heart Rate: ",data.bpm)
+                logger.debug("Heart Rate: {} bpm".format(data.bpm))
                 self.state.bpm = data.bpm
 
             while not client.is_connected:
-                print("trying to connect to HRM")
+                # print("trying to connect to HRM")
+                logger.info("Attemptint to connect to HRM")
                 await asyncio.sleep(1)
-            print("Heart Rate Monitor Connected")
+            # print("Heart Rate Monitor Connected")
+            logger.info("Heart Rate Monitor Connected!")
             self.state.hr_available = True
 
             self.hr_service = HeartRateService(client)
@@ -83,10 +91,12 @@ class PowerSensor(object):
     # @backoff.on_exception(backoff.constant, (BleakError, asyncio.exceptions.TimeoutError), interval=5)
     async def start(self, sensor_active):
         self.asyncio_loop = asyncio.get_event_loop()
-        print("starting Power sensor monitor loop on ", self.address)
-        
+        # print("starting Power sensor monitor loop on ", self.address)
+        logger.info("starting Power sensor monitor loop on {}".format(self.address))
+
         def disconnect_handler(client):
-            print("Power Meter disconnected")
+            # print("Power Meter disconnected")
+            logger.info("Power Meter disconnected!")
             self.state.power_available = False
     
         async with BleakClient(self.address, loop=self.asyncio_loop, timeout=5.0) as client:
@@ -97,6 +107,7 @@ class PowerSensor(object):
                 current_crank_revs = data.cumulative_crank_revs
                 current_crank_event_time = data.last_crank_event_time
                 # print("Instantaneous Power: ", data.instantaneous_power)
+                logger.debug("Instantaneous Power: {} Watts".format(data.instantaneous_power))
 
                 time_diff = (current_crank_event_time - self.previous_crank_event_time)*(1/1024)
                 if time_diff != 0:
@@ -108,21 +119,25 @@ class PowerSensor(object):
                 self.previous_crank_revs = current_crank_revs
 
                 # print("cadence: ", cadence)
+                logger.debug("cadence: {}".format(cadence))
                 self.state.instantaneous_power = data.instantaneous_power
                 self.state.cadence = cadence
 
             while not client.is_connected:
-                print("trying to connect to powermeter")
+                # print("trying to connect to powermeter")
+                logger.info("Attempting to connect to Powermeter")
                 await asyncio.sleep(1)
             # Setup Power
             self.state.power_available = True
-            print("Powermeter connected!")
+            # print("Powermeter connected!")
+            logger.info("Powermeter connected!")
             self.power_service = CyclingPowerService(client)
             self.power_service.set_cycling_power_measurement_handler(my_power_handler)
             await self.power_service.enable_cycling_power_measurement_notifications()
 
             while sensor_active and client.is_connected:
                 # print("Reading Power and Cadence")
+                logger.debug("Reading Power and Cadence")
                 await asyncio.sleep(10)
 
     async def stop(self):
