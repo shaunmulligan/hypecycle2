@@ -28,7 +28,7 @@ class Blesensors(ormar.Model):
 
     id: int = ormar.Integer(primary_key=True)
     name: str = ormar.String(max_length=100)
-    address: str = ormar.String(max_length=100)
+    address: str = ormar.String(max_length=100, unique=True)
     sensor_type: str = ormar.String(default="Generic", max_length=100)
 
 class Gpsreadings(ormar.Model):
