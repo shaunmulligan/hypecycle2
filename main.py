@@ -150,7 +150,7 @@ async def connect_ble_devices():
                     hr_task = asyncio.create_task(hypecycleState.hrm.start(ble_sensors_active))
                 else:
                     logger.info("couldn't find {} at address: {}".format(sensor.name, sensor.address))
-            elif sensor.sensor_type == "Cycling Power":      
+            elif sensor.sensor_type == "Cycling Power" or sensor.sensor_type == "Generic Access":      
                 logger.info("Trying to connect to PM: {}".format(sensor.name))
                 power = await BleakScanner.find_device_by_address(sensor.address,timeout=5.0)
                 if power is not None:
