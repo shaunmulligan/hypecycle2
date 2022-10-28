@@ -67,6 +67,7 @@ hypecycleState.longitude = 0.0
 hypecycleState.distance = 0
 hypecycleState.moving_time = 0
 hypecycleState.stopped_time = 0
+hypecycleState.elapsed_time = 0
 hypecycleState.uphill = 0
 hypecycleState.downhill = 0
 
@@ -193,6 +194,7 @@ async def websocket_endpoint(websocket: WebSocket):
             "distance": hypecycleState.distance,
             "uphill": hypecycleState.uphill,
             "downhill": hypecycleState.downhill,
+            "elapsed_time": hypecycleState.elapsed_time,
             "moving_time": hypecycleState.moving_time,
             "stopped_time": hypecycleState.stopped_time,
              }
