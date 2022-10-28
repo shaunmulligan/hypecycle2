@@ -23,3 +23,13 @@ Current Design:
 - BMP388 to messure altitude using pressure. Also gives us temp. Connected to the i2c on the screen.
 - Using Adafruit miniGPS connected via i2c
 
+# Install:
+
+To setup a Raspberry Pi OS device follow the install instructions in [docs/installing.md]
+
+# Usage:
+For development run the following:
+1. Start the frontend server with hot reload: `cd hypecycle-frontend && npm run dev`
+2. Start the backend service `cd hypecycle2 && ./launch.sh`
+3. Start the webkit webview pointing at the frontend instance `DISPLAY=:0 ./hc-browser  http://localhost:5173/`
+4. You can also access all the backend API endpoint swagger docs via `<YOUR_DEVICE_IP>:8001/docs#/`
