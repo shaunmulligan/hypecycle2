@@ -1,4 +1,5 @@
 import asyncio
+from datetime import datetime
 from model.db import Rides, Gpsreadings, Hrreadings, Powerreadings, Enviroreadings
 from lib.recorder.files import generate_gpx
 
@@ -17,6 +18,9 @@ async def monitor_recording(state, interval=1):
             await hr_reading.save()
             await pow_reading.save()
             await env_reading.save()
+            time_delta = datetime.now() - active_ride.start_time
+            print(time_delta.total_seconds())
+            state.elapsed_time = time_delta.total_seconds()
         # else:
         #     # print("No active ride, so just chilling...")
 

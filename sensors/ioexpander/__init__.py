@@ -53,6 +53,7 @@ async def monitor_buttons(state):
                     # Change ride active state to false
                     ride = await cur_ride.update(active=False) # TODO: add endtime stamp here
                     print("Stop ride requested by button press...")
+                    state.elapsed_time = 0
                     # Generate GPX file.
                     gpx_data = await generate_gpx(ride.id)
                     await write_gpx_file(gpx_data)
