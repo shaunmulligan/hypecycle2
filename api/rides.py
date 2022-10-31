@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from model.db import Rides
+from lib.recorder.files import write_gpx_file
 
 router = APIRouter()
 
@@ -20,3 +21,7 @@ async def stop_current_ride():
     else:
         ride = await cur_ride.update(active=False) # TODO: add endtime stamp here
     return ride
+
+@router.post("/save/{ride_id}")
+async def save_gpx(ride_id):
+    return await write_gpx_file(ride_id)

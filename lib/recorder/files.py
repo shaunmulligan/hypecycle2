@@ -44,8 +44,11 @@ async def generate_gpx(id):
     
     return gpx
 
-async def write_gpx_file(gpx):
+async def write_gpx_file(id):
+    gpx = await generate_gpx(id)
     # Create GPX file with current datetime
     filename = "data/" + datetime.now().strftime("%Y_%m_%d-%I_%M_%S_%p") + ".gpx"
     with open(filename, "w") as f: 
         f.write(gpx.to_xml()) #TODO: this probably needs to be asyncio compat??
+    return filename
+

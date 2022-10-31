@@ -19,8 +19,8 @@ async def monitor_recording(state, interval=1):
             await pow_reading.save()
             await env_reading.save()
             time_delta = datetime.now() - active_ride.start_time
-            print(time_delta.total_seconds())
             state.elapsed_time = time_delta.total_seconds()
+            #TODO: Should we calc 3s and 10s Power here?
         # else:
         #     # print("No active ride, so just chilling...")
 
