@@ -18,16 +18,12 @@ maybes:
 - Haptic buzzer you can feel in the handlebars
 - Ability to bluetooth tether to phone for internet access.
 
-Current Design:
-- Uses pimoroni io-expander to read battery level and button presses, potentially will drive PWM and LEDs? Connected via i2c
-- BMP388 to messure altitude using pressure. Also gives us temp. Connected to the i2c on the screen.
-- Using Adafruit miniGPS connected via i2c
-
 # Install:
 
 To setup a Raspberry Pi OS device follow the install instructions in [docs/installing.md]
 
 # Usage:
+
 For development run the following:
 1. Start the frontend server with hot reload: `cd hypecycle-frontend && npm run dev`
 2. Start the backend service `cd hypecycle2 && ./launch.sh`

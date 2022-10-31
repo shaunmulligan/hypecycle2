@@ -37,7 +37,7 @@ class Gpsreadings(ormar.Model):
 
     id: int = ormar.Integer(primary_key=True)
     timestamp: datetime = ormar.DateTime(default=datetime.datetime.now, timezone=False)
-    ride_id: Optional[Rides] = ormar.ForeignKey(Rides, nullable=True)
+    ride_id: Optional[Rides] = ormar.ForeignKey(Rides, nullable=True, ondelete="CASCADE")
     latitude: float = ormar.Float(default=0.0)
     longitude: float = ormar.Float(default=0.0)
     altitude: float = ormar.Float(default=0.0)
@@ -49,7 +49,7 @@ class Hrreadings(ormar.Model):
 
     id: int = ormar.Integer(primary_key=True)
     timestamp: datetime = ormar.DateTime(default=datetime.datetime.now, timezone=False)
-    ride_id: Optional[Rides] = ormar.ForeignKey(Rides, nullable=True)
+    ride_id: Optional[Rides] = ormar.ForeignKey(Rides, nullable=True, ondelete="CASCADE")
     bpm: int = ormar.Integer(default=0)
 
 class Powerreadings(ormar.Model):
@@ -58,7 +58,7 @@ class Powerreadings(ormar.Model):
 
     id: int = ormar.Integer(primary_key=True)
     timestamp: datetime = ormar.DateTime(default=datetime.datetime.now, timezone=False)
-    ride_id: Optional[Rides] = ormar.ForeignKey(Rides, nullable=True)
+    ride_id: Optional[Rides] = ormar.ForeignKey(Rides, nullable=True, ondelete="CASCADE")
     power: int = ormar.Integer(default=0)
     cadence: int = ormar.Integer(default=0)
 
@@ -68,7 +68,7 @@ class Enviroreadings(ormar.Model):
 
     id: int = ormar.Integer(primary_key=True)
     timestamp: datetime = ormar.DateTime(default=datetime.datetime.now, timezone=False)
-    ride_id: Optional[Rides] = ormar.ForeignKey(Rides, nullable=True)
+    ride_id: Optional[Rides] = ormar.ForeignKey(Rides, nullable=True, ondelete="CASCADE")
     temp: float = ormar.Float(default=0.0)
     altitude: float = ormar.Float(default=0.0)
 

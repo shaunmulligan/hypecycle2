@@ -7,7 +7,10 @@ import gpxpy
 import gpxpy.gpx
 
 from model.db import Rides
-from lib.recorder.files import generate_gpx, write_gpx_file
+from lib.recorder.files import write_gpx_file
+
+import logging
+logger = logging.getLogger(__name__)
 
 BTN_1 = 14
 BTN_2 = 12
@@ -44,7 +47,7 @@ async def monitor_buttons(state):
                 state.ride_paused = not state.ride_paused # Toggle the paused state
             await asyncio.sleep(1.0 / 30)
         elif stop != stop_last:
-            print("Stop Button has been {}".format("released" if stop else "pressed"))
+            logger.info("Stop Button has been {}".format("released" if stop else "pressed"))
             stop_last = stop
             if not stop:
                 # Get current active ride if it exists
@@ -52,20 +55,20 @@ async def monitor_buttons(state):
                 if cur_ride:
                     # Change ride active state to false
                     ride = await cur_ride.update(active=False) # TODO: add endtime stamp here
-                    print("Stop ride requested by button press...")
+                    logger.info("Stop ride requested by button press...")
                     state.elapsed_time = 0
-                    # Generate GPX file.
-                    gpx_data = await generate_gpx(ride.id)
-                    await write_gpx_file(gpx_data)
+                    # Generate and save GPX file.
+                    f = await write_gpx_file(ride.id)
+                    logger.info("Saved ride to file named {}".format(f))
                 else:
-                    print("No active ride to stop... so starting a new ride")
+                    logger.info("No active ride to stop... so starting a new ride")
                     # Create a new ride TODO: Generate interesting names here
                     ride = Rides(name="New Ride")
                     await ride.save()
 
             await asyncio.sleep(1.0 / 30)
         elif button_3 != button_3_last:
-            print("Button 3 has been {}".format("released" if button_3 else "pressed"))
+            logger.info("Button 3 has been {}".format("released" if button_3 else "pressed"))
             button_3_last = button_3
             await asyncio.sleep(1.0 / 30)
 
@@ -77,7 +80,7 @@ async def monitor_battery(state):
         adc = round(adc,2)
 
         if adc != last_adc:
-            print("{:.2f}v".format(adc))
+            logger.info("{:.2f}v".format(adc))
             state.battery_level = adc
             last_adc = adc
 
@@ -88,7 +91,7 @@ if __name__ == "__main__":
     while True:
         value = ioe.input(BTN_1)
         if value != last_value:
-            print("Button has been {}".format("released" if value else "pressed"))
+            logger.info("Button has been {}".format("released" if value else "pressed"))
             last_value = value
 
         time.sleep(1.0 / 30)
