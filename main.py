@@ -4,17 +4,16 @@ import databases
 import sqlalchemy
 import uvicorn
 import asyncio
+import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi_crudrouter import OrmarCRUDRouter
 from fastapi import WebSocket, WebSocketDisconnect
 
-import logging
-
 from bleak import BleakScanner
 
 from model.db import database, Rides, Blesensors, Gpsreadings, Hrreadings, Powerreadings, Enviroreadings
-from api import rides
+from api import rides, settings
 from lib.connectionmanager import ConnectionManager
 from lib import recorder
 
@@ -24,6 +23,7 @@ from sensors import gps
 from sensors import ioexpander 
 from sensors import bmp388
 
+import config
 # Globals
 # setup loggers
 logging.config.fileConfig('logging.conf', disable_existing_loggers=False)
@@ -241,8 +241,10 @@ app.include_router(OrmarCRUDRouter(schema=Hrreadings, prefix="heart_rate",))
 app.include_router(OrmarCRUDRouter(schema=Powerreadings, prefix="power",))
 app.include_router(OrmarCRUDRouter(schema=Enviroreadings, prefix="enviroment"))
 
+
 # Custom Routes
 app.include_router(rides.router, prefix="/rides", tags=["Rides"])
+app.include_router(settings.router, prefix="/settings", tags=["Settings"])
 if __name__ == "__main__":
 
     # to play with API run the script and visit http://0.0.0.0:8001/docs

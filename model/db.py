@@ -72,7 +72,6 @@ class Enviroreadings(ormar.Model):
     temp: float = ormar.Float(default=0.0)
     altitude: float = ormar.Float(default=0.0)
 
-
 def main():
     print("boot strapping DB")
     engine = sqlalchemy.create_engine("sqlite:///db.sqlite")
