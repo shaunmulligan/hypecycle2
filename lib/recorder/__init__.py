@@ -21,8 +21,8 @@ async def monitor_recording(state, interval=1):
                 distance_to_prev = geo.distance(latitude_2=state.latitude, longitude_2=state.longitude, elevation_2=state.gps_altitude, latitude_1=prev_location.latitude, longitude_1=prev_location.longitude, elevation_1=prev_location.altitude)
                 height_to_prev = state.gps_altitude - prev_location.altitude
 
-            logger.info("Distance to previous point: {}".format(distance_to_prev))
-            logger.info("Height from previous point: {}".format(height_to_prev))
+            logger.debug("Distance to previous point: {}".format(distance_to_prev))
+            logger.debug("Height from previous point: {}".format(height_to_prev))
 
             location = Gpsreadings(ride_id=active_ride.id,latitude=state.latitude,longitude=state.longitude,speed=state.speed,altitude=state.gps_altitude, distance_to_prev=distance_to_prev, height_to_prev=height_to_prev)
             hr_reading = Hrreadings(ride_id=active_ride.id, bpm=state.bpm)
@@ -43,6 +43,12 @@ async def monitor_averages(state, interval=60):
         active_ride = await Rides.objects.filter(active=True).get_or_none()
         if active_ride:
             gpx = await generate_gpx(active_ride.id) # TODO: this will probably be a bottleneck
+            gps_data = await Gpsreadings.objects.filter(ride_id=active_ride.id).all()
+            gps_distance = await Gpsreadings.objects.filter(ride_id=active_ride.id).sum("distance_to_prev")
+            gps_height = await Gpsreadings.objects.filter(ride_id=active_ride.id).sum("height_to_prev")
+            logger.info("GPS db distance: {}".format(gps_distance))
+            logger.info("GPS db height: {}".format(gps_height))
+            
             print("Distance: ", gpx.length_3d())
             state.distance = gpx.length_3d()
             moving_data = gpx.get_moving_data()
