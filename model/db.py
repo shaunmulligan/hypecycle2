@@ -72,6 +72,17 @@ class Enviroreadings(ormar.Model):
     temp: float = ormar.Float(default=0.0)
     altitude: float = ormar.Float(default=0.0)
 
+class Settings(ormar.Model):
+    class Meta(BaseMeta):
+        tablename = "settings"
+
+    id: int = ormar.Integer(primary_key=True)
+    lcd_brightness: int = ormar.Integer(default=95)
+    wifi_enabled: bool = ormar.Boolean(default=True)
+    bluetooth_enabled: bool = ormar.Boolean(default=True)
+    lights_enabled: bool = ormar.Boolean(default=False)
+    upload_enabled: bool = ormar.Boolean(default=True)
+
 def main():
     print("boot strapping DB")
     engine = sqlalchemy.create_engine("sqlite:///db.sqlite")

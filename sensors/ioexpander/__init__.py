@@ -6,8 +6,9 @@ import ioexpander as io
 import gpxpy
 import gpxpy.gpx
 
-from model.db import Rides
+from model.db import Rides, Settings
 from lib.recorder.files import write_gpx_file
+import config
 
 import logging
 logger = logging.getLogger(__name__)
@@ -15,6 +16,7 @@ logger = logging.getLogger(__name__)
 BTN_1 = 14
 BTN_2 = 12
 BTN_3 = 10
+LED_1 = 1
 
 ioe = io.IOE(i2c_addr=0x18)
 
@@ -22,6 +24,7 @@ ioe = io.IOE(i2c_addr=0x18)
 ioe.set_mode(BTN_1, io.IN_PU)
 ioe.set_mode(BTN_2, io.IN_PU)
 ioe.set_mode(BTN_3, io.IN_PU)
+ioe.set_mode(LED_1, io.OUT)
 
 # Analog inputs
 ioe.set_adc_vref(3.3)  # Input voltage of IO Expander, this is 3.3 on Breakout Garden
@@ -74,7 +77,7 @@ async def monitor_buttons(state):
 
 async def monitor_battery(state):
     last_adc = 0.00
-
+    
     while True:
         adc = await loop.run_in_executor(None, ioe.input, 13)
         adc = round(adc,2)
@@ -85,6 +88,16 @@ async def monitor_battery(state):
             last_adc = adc
 
         await asyncio.sleep(60.0)
+
+async def lights_task(state):
+    out_value = 0
+    while True: # Loop to keep lights_task alive
+        while (await Settings.objects.filter(id=1).get_or_none()).lights_enabled:
+            logger.debug("LED value is {}".format(out_value))
+            await loop.run_in_executor(None, ioe.output, LED_1, out_value)
+            out_value = not out_value
+            await asyncio.sleep(0.5)
+        await asyncio.sleep(2)
 
 if __name__ == "__main__":
     last_value = io.HIGH
