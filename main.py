@@ -49,6 +49,8 @@ hypecycleState.is_active = False # is_active = True when we have an Current/acti
 hypecycleState.battery_level = 100.0
 hypecycleState.fix_quality = 0
 hypecycleState.instantaneous_power = 0
+hypecycleState.power3s = 0
+hypecycleState.power10s = 0
 hypecycleState.cadence = 0
 hypecycleState.bpm = 0
 hypecycleState.speed = 0.0
@@ -108,10 +110,10 @@ async def get_bpm():
 
 @app.get("/instant_power")
 async def get_instant_power():
-    try:
-        return hypecycleState.instantaneous_power
-    except AttributeError:
-        return  0 
+    # try:
+    return {"instantaneous": hypecycleState.instantaneous_power, "3s": hypecycleState.power3s, "10s": hypecycleState.power10s}
+    # except AttributeError:
+    #     return  0 
 
 @app.get("/status")
 async def get_status():
