@@ -6,7 +6,7 @@ import ioexpander as io
 import gpxpy
 import gpxpy.gpx
 
-from model.db import Rides
+from model.db import Rides, Settings
 from lib.recorder.files import write_gpx_file
 import config
 
@@ -91,13 +91,13 @@ async def monitor_battery(state):
 
 async def lights_task(state):
     out_value = 0
-    logger.info("Config state: {}".format(config.settings["lights_enabled"]))
-    while config.lights_enabled:
-        
-        logger.debug("LED value is {}".format(out_value))
-        await loop.run_in_executor(None, ioe.output, LED_1, out_value)
-        out_value = not out_value
-        await asyncio.sleep(0.5)
+    while True: # Loop to keep lights_task alive
+        while (await Settings.objects.filter(id=1).get_or_none()).lights_enabled:
+            logger.debug("LED value is {}".format(out_value))
+            await loop.run_in_executor(None, ioe.output, LED_1, out_value)
+            out_value = not out_value
+            await asyncio.sleep(0.5)
+        await asyncio.sleep(2)
 
 if __name__ == "__main__":
     last_value = io.HIGH
