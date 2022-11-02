@@ -110,10 +110,7 @@ async def get_bpm():
 
 @app.get("/instant_power")
 async def get_instant_power():
-    # try:
     return {"instantaneous": hypecycleState.instantaneous_power, "3s": hypecycleState.power3s, "10s": hypecycleState.power10s}
-    # except AttributeError:
-    #     return  0 
 
 @app.get("/status")
 async def get_status():
@@ -180,6 +177,8 @@ async def websocket_endpoint(websocket: WebSocket):
             "is_active": hypecycleState.is_active,
             "ride_paused": hypecycleState.ride_paused,
             "instantaneous_power": hypecycleState.instantaneous_power,
+            "power3s": hypecycleState.power3s,
+            "power10s": hypecycleState.power10s,
             "bpm": hypecycleState.bpm,
             "speed": hypecycleState.speed,
             "gps_altitude": float(hypecycleState.gps_altitude or 0.0),
