@@ -18,8 +18,12 @@ async def monitor_recording(state, interval=1):
                 distance_to_prev = 0
                 height_to_prev = 0
             else:
-                distance_to_prev = geo.distance(latitude_2=state.latitude, longitude_2=state.longitude, elevation_2=state.gps_altitude, latitude_1=prev_location.latitude, longitude_1=prev_location.longitude, elevation_1=prev_location.altitude)
-                height_to_prev = state.gps_altitude - prev_location.altitude
+                if state.fix_quality: # Only run the calculation if we have GPS fix, otherwise assume movement.
+                    distance_to_prev = geo.distance(latitude_2=state.latitude, longitude_2=state.longitude, elevation_2=state.altitude, latitude_1=prev_location.latitude, longitude_1=prev_location.longitude, elevation_1=prev_location.altitude)
+                    height_to_prev = state.altitude - prev_location.altitude
+                else:
+                    distance_to_prev = 0.0
+                    height_to_prev = 0.0
 
             logger.debug("Distance to previous point: {}".format(distance_to_prev))
             logger.debug("Height from previous point: {}".format(height_to_prev))
@@ -44,10 +48,9 @@ async def monitor_averages(state, interval=60):
         if active_ride:
             gpx = await generate_gpx(active_ride.id) # TODO: this will probably be a bottleneck
             gps_data = await Gpsreadings.objects.filter(ride_id=active_ride.id).all()
-            gps_distance = await Gpsreadings.objects.filter(ride_id=active_ride.id).sum("distance_to_prev")
-            gps_height = await Gpsreadings.objects.filter(ride_id=active_ride.id).sum("height_to_prev")
-            logger.info("GPS db distance: {}".format(gps_distance))
-            logger.info("GPS db height: {}".format(gps_height))
+            gps_distance_and_height = await Gpsreadings.objects.filter(ride_id=active_ride.id).sum(["distance_to_prev","height_to_prev"])
+            logger.info("GPS db distance: {}".format(gps_distance_and_height["distance_to_prev"]))
+            logger.info("GPS db height: {}".format(gps_distance_and_height["height_to_prev"]))
             
             print("Distance: ", gpx.length_3d())
             state.distance = gpx.length_3d()
