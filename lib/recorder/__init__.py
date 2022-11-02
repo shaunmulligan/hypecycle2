@@ -28,7 +28,7 @@ async def monitor_recording(state, interval=1):
             logger.debug("Distance to previous point: {}".format(distance_to_prev))
             logger.debug("Height from previous point: {}".format(height_to_prev))
 
-            location = Gpsreadings(ride_id=active_ride.id,latitude=state.latitude,longitude=state.longitude,speed=state.speed,altitude=state.gps_altitude, distance_to_prev=distance_to_prev, height_to_prev=height_to_prev)
+            location = Gpsreadings(ride_id=active_ride.id,latitude=state.latitude,longitude=state.longitude,speed=state.speed,altitude=state.altitude, distance_to_prev=distance_to_prev, height_to_prev=height_to_prev)
             hr_reading = Hrreadings(ride_id=active_ride.id, bpm=state.bpm)
             pow_reading = Powerreadings(ride_id=active_ride.id, power=state.instantaneous_power, cadence=state.cadence)
             env_reading = Enviroreadings(ride_id=active_ride.id, temp=state.temperature, altitude=state.altitude)
