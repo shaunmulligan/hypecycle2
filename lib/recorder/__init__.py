@@ -2,6 +2,10 @@ import asyncio
 from datetime import datetime
 from model.db import Rides, Gpsreadings, Hrreadings, Powerreadings, Enviroreadings
 from lib.recorder.files import generate_gpx
+from gpxpy import geo
+
+import logging
+logger = logging.getLogger(__name__)
 
 async def monitor_recording(state, interval=1): 
     # Check if we have an active ride and if we do, write state to DB
@@ -9,8 +13,18 @@ async def monitor_recording(state, interval=1):
     while True:
         active_ride = await Rides.objects.filter(active=True).get_or_none()
         if active_ride:
-            # print("Ride started at {}, recording data to DB".format(active_ride.start_time))
-            location = Gpsreadings(ride_id=active_ride.id,latitude=state.latitude,longitude=state.longitude,speed=state.speed,altitude=state.gps_altitude)
+            prev_location = await Gpsreadings.objects.get_or_none() # Fetch the last location row from DB
+            if not prev_location:
+                distance_to_prev = 0
+                height_to_prev = 0
+            else:
+                distance_to_prev = geo.distance(latitude_2=state.latitude, longitude_2=state.longitude, elevation_2=state.gps_altitude, latitude_1=prev_location.latitude, longitude_1=prev_location.longitude, elevation_1=prev_location.altitude)
+                height_to_prev = state.gps_altitude - prev_location.altitude
+
+            logger.info("Distance to previous point: {}".format(distance_to_prev))
+            logger.info("Height from previous point: {}".format(height_to_prev))
+
+            location = Gpsreadings(ride_id=active_ride.id,latitude=state.latitude,longitude=state.longitude,speed=state.speed,altitude=state.gps_altitude, distance_to_prev=distance_to_prev, height_to_prev=height_to_prev)
             hr_reading = Hrreadings(ride_id=active_ride.id, bpm=state.bpm)
             pow_reading = Powerreadings(ride_id=active_ride.id, power=state.instantaneous_power, cadence=state.cadence)
             env_reading = Enviroreadings(ride_id=active_ride.id, temp=state.temperature, altitude=state.altitude)
@@ -20,9 +34,6 @@ async def monitor_recording(state, interval=1):
             await env_reading.save()
             time_delta = datetime.now() - active_ride.start_time
             state.elapsed_time = time_delta.total_seconds()
-            #TODO: Should we calc 3s and 10s Power here?
-        # else:
-        #     # print("No active ride, so just chilling...")
 
         await asyncio.sleep(interval)
 
