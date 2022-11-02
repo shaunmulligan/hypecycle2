@@ -13,20 +13,22 @@ async def monitor_recording(state, interval=1):
     while True:
         active_ride = await Rides.objects.filter(active=True).get_or_none()
         if active_ride:
-            prev_location = await Gpsreadings.objects.get_or_none() # Fetch the last location row from DB
+            prev_location = await Gpsreadings.objects.filter(id=active_ride.id).get_or_none() # Fetch the last location row from DB
             if not prev_location:
                 distance_to_prev = 0
                 height_to_prev = 0
             else:
                 if state.fix_quality: # Only run the calculation if we have GPS fix, otherwise assume movement.
                     distance_to_prev = geo.distance(latitude_2=state.latitude, longitude_2=state.longitude, elevation_2=state.altitude, latitude_1=prev_location.latitude, longitude_1=prev_location.longitude, elevation_1=prev_location.altitude)
-                    height_to_prev = state.altitude - prev_location.altitude
+                    height_to_prev = state.altitude - (prev_location.altitude if prev_location.altitude else 0) # TODO: something is not right here
+                    if distance_to_prev < 15.0: # don't use the distance unless we move more than 15m, this accounts for GPS inaccuracy. There is probably a better way to discard points
+                        distance_to_prev = 0.0
                 else:
                     distance_to_prev = 0.0
                     height_to_prev = 0.0
 
-            logger.debug("Distance to previous point: {}".format(distance_to_prev))
-            logger.debug("Height from previous point: {}".format(height_to_prev))
+            logger.info("Distance to previous point: {}".format(distance_to_prev))
+            logger.info("Height from previous point: {}".format(height_to_prev))
 
             location = Gpsreadings(ride_id=active_ride.id,latitude=state.latitude,longitude=state.longitude,speed=state.speed,altitude=state.altitude, distance_to_prev=distance_to_prev, height_to_prev=height_to_prev)
             hr_reading = Hrreadings(ride_id=active_ride.id, bpm=state.bpm)
