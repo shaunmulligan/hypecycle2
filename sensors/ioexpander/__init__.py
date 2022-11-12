@@ -81,10 +81,10 @@ async def monitor_battery(state):
     
     while True:
         adc = await loop.run_in_executor(None, ioe.input, 13)
-        adc = round(adc,2)
+        adc = round(adc,4)
 
         if adc != last_adc:
-            logger.info("{:.2f}v".format(adc))
+            logger.info("{:.4f}v".format(adc))
             state.battery_level = adc
             last_adc = adc
 
