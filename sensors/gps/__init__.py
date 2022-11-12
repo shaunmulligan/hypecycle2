@@ -22,7 +22,7 @@ async def monitor_gps(state):
             }
             state.latitude = gps.latitude
             state.longitude = gps.longitude
-            state.speed = (gps.speed_over_ground*1.852000) # Convert knots to km/h
+            state.speed = (gps.speed_over_ground*1.852000) if gps.speed_over_ground else 0.0 # Convert knots to km/h
         await asyncio.sleep(1.0)
 
 
