@@ -42,6 +42,8 @@ class Gpsreadings(ormar.Model):
     longitude: float = ormar.Float(default=0.0)
     altitude: float = ormar.Float(default=0.0)
     speed: float = ormar.Float(default=0.0)
+    distance_to_prev: float = ormar.Float(default=0.0)
+    height_to_prev: float = ormar.Float(default=0.0)
 
 class Hrreadings(ormar.Model):
     class Meta(BaseMeta):

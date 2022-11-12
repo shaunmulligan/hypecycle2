@@ -61,16 +61,24 @@ hypecycleState.temperature = 0.0
 hypecycleState.location = {
                 "latitude": 0.0,
                 "longitude": 0.0,
-                # "gps_time": None
             }
 hypecycleState.latitude = 0.0
 hypecycleState.longitude = 0.0
-hypecycleState.distance = 0
+hypecycleState.distance = 0.0
 hypecycleState.moving_time = 0
 hypecycleState.stopped_time = 0
 hypecycleState.elapsed_time = 0
-hypecycleState.uphill = 0
-hypecycleState.downhill = 0
+hypecycleState.uphill = 0.0
+hypecycleState.downhill = 0.0
+hypecycleState.max_speed = 0.0
+hypecycleState.avg_speed = 0.0
+hypecycleState.max_altitude = 0.0
+hypecycleState.avg_power = 0.0
+hypecycleState.max_power = 0.0
+hypecycleState.avg_hr = 0.0
+hypecycleState.max_hr = 0.0
+hypecycleState.avg_temp = 0.0
+hypecycleState.max_temp = 0.0
 
 ble_sensors_active = asyncio.Event() # single to indicate if BLE devices should be active or not
 
@@ -179,8 +187,11 @@ async def websocket_endpoint(websocket: WebSocket):
             "instantaneous_power": hypecycleState.instantaneous_power,
             "power3s": hypecycleState.power3s,
             "power10s": hypecycleState.power10s,
+            "cadence": hypecycleState.cadence,
             "bpm": hypecycleState.bpm,
             "speed": hypecycleState.speed,
+            "max_speed": hypecycleState.max_speed,
+            "avg_speed": hypecycleState.avg_speed,
             "gps_altitude": float(hypecycleState.gps_altitude or 0.0),
             "altitude": float(hypecycleState.altitude or 0.0),
             "location": hypecycleState.location,
@@ -193,6 +204,12 @@ async def websocket_endpoint(websocket: WebSocket):
             "elapsed_time": hypecycleState.elapsed_time,
             "moving_time": hypecycleState.moving_time,
             "stopped_time": hypecycleState.stopped_time,
+            "avg_power": hypecycleState.avg_power,
+            "max_power": hypecycleState.max_power,
+            "avg_hr": hypecycleState.avg_hr,
+            "max_hr": hypecycleState.max_hr,
+            "avg_temp": hypecycleState.avg_temp,
+            "max_temp": hypecycleState.max_temp,
              }
 
             await websocket.send_json(state)
