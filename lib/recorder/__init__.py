@@ -22,7 +22,7 @@ async def monitor_recording(state, interval=1):
             else:
                 if state.fix_quality: # Only run the calculation if we have GPS fix, otherwise assume no movement.
                     distance_to_prev = geo.distance(latitude_2=state.latitude, longitude_2=state.longitude, elevation_2=state.altitude, latitude_1=prev_location.latitude, longitude_1=prev_location.longitude, elevation_1=prev_location.altitude)
-                    if distance_to_prev > 50: # if we have moved more than 50m in 1 second, we are moving at > 180km/h, so assume GPS issues and that we aren't moving.
+                    if distance_to_prev > 50 or distance_to_prev <1: # if we have moved more than 50m in 1 second, we are moving at > 180km/h, so assume GPS issues and that we aren't moving. Also if less than 3.5km/h
                         distance_to_prev = 0.0
                     height_to_prev = state.altitude - (prev_location.altitude if prev_location.altitude else 0)
                 else:
