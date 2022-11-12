@@ -12,19 +12,6 @@ async def monitor_gps(state):
     while True:
         result = await loop.run_in_executor(None, gps.update)
         if result:
-    #         print("""
-    # T: {timestamp}
-    # N: {latitude}
-    # E: {longitude}
-    # Alt: {altitude}
-    # Sats: {num_sats}
-    # Qual: {gps_qual}
-    # Speed: {speed_over_ground}
-    # Fix Type: {mode_fix_type}
-    # PDOP: {pdop}
-    # VDOP: {vdop}
-    # HDOP: {hdop}
-    # """.format(**gps.data))
             state.latitude = gps.latitude
             state.longitude = gps.longitude
             state.gps_altitude = gps.altitude
@@ -32,11 +19,10 @@ async def monitor_gps(state):
             state.location = {
                 "latitude": gps.latitude,
                 "longitude": gps.longitude,
-                # "gps_time": gps.timestamp
             }
             state.latitude = gps.latitude
             state.longitude = gps.longitude
-            state.speed = gps.speed_over_ground
+            state.speed = (gps.speed_over_ground*1.852000) # Convert knots to km/h
         await asyncio.sleep(1.0)
 
 

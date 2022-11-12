@@ -13,22 +13,24 @@ async def monitor_recording(state, interval=1):
     while True:
         active_ride = await Rides.objects.filter(active=True).get_or_none()
         if active_ride:
-            prev_location = await Gpsreadings.objects.filter(id=active_ride.id).get_or_none() # Fetch the last location row from DB
+            logger.debug("Active Ride ID: {}".format(active_ride.id))
+            prev_location = await active_ride.gpsreadingss.order_by(Gpsreadings.id.desc()).limit(1).get_or_none() # Fetch the last location row from DB if it exists
             if not prev_location:
-                distance_to_prev = 0
-                height_to_prev = 0
+                logger.debug("No previous location for this ride")
+                distance_to_prev = 0.0
+                height_to_prev = 0.0
             else:
-                if state.fix_quality: # Only run the calculation if we have GPS fix, otherwise assume movement.
+                if state.fix_quality: # Only run the calculation if we have GPS fix, otherwise assume no movement.
                     distance_to_prev = geo.distance(latitude_2=state.latitude, longitude_2=state.longitude, elevation_2=state.altitude, latitude_1=prev_location.latitude, longitude_1=prev_location.longitude, elevation_1=prev_location.altitude)
-                    height_to_prev = state.altitude - (prev_location.altitude if prev_location.altitude else 0) # TODO: something is not right here
-                    if distance_to_prev < 15.0: # don't use the distance unless we move more than 15m, this accounts for GPS inaccuracy. There is probably a better way to discard points
+                    if distance_to_prev > 50: # if we have moved more than 50m in 1 second, we are moving at > 180km/h, so assume GPS issues and that we aren't moving.
                         distance_to_prev = 0.0
+                    height_to_prev = state.altitude - (prev_location.altitude if prev_location.altitude else 0)
                 else:
                     distance_to_prev = 0.0
                     height_to_prev = 0.0
 
-            logger.info("Distance to previous point: {}".format(distance_to_prev))
-            logger.info("Height from previous point: {}".format(height_to_prev))
+            logger.debug("Distance to previous point: {}".format(distance_to_prev))
+            logger.debug("Height from previous point: {}".format(height_to_prev))
 
             location = Gpsreadings(ride_id=active_ride.id,latitude=state.latitude,longitude=state.longitude,speed=state.speed,altitude=state.altitude, distance_to_prev=distance_to_prev, height_to_prev=height_to_prev)
             hr_reading = Hrreadings(ride_id=active_ride.id, bpm=state.bpm)
@@ -43,34 +45,47 @@ async def monitor_recording(state, interval=1):
 
         await asyncio.sleep(interval)
 
-async def monitor_averages(state, interval=60):
+async def monitor_averages(state, interval=10):
     # Calculate averages for the current ride and push them into state
     while True:
         active_ride = await Rides.objects.filter(active=True).get_or_none()
         if active_ride:
-            gpx = await generate_gpx(active_ride.id) # TODO: this will probably be a bottleneck
-            gps_data = await Gpsreadings.objects.filter(ride_id=active_ride.id).all()
-            gps_distance_and_height = await Gpsreadings.objects.filter(ride_id=active_ride.id).sum(["distance_to_prev","height_to_prev"])
-            logger.info("GPS db distance: {}".format(gps_distance_and_height["distance_to_prev"]))
-            logger.info("GPS db height: {}".format(gps_distance_and_height["height_to_prev"]))
+            gps_distance = await Gpsreadings.objects.filter(ride_id=active_ride.id).sum("distance_to_prev")
+            gps_up_hill = await active_ride.gpsreadingss.filter(Gpsreadings.height_to_prev > 0).sum("height_to_prev")
+            gps_down_hill = await active_ride.gpsreadingss.filter(Gpsreadings.height_to_prev < 0).sum("height_to_prev")
             
-            print("Distance: ", gpx.length_3d())
-            state.distance = gpx.length_3d()
-            moving_data = gpx.get_moving_data()
-            if moving_data:
-                print('Moving time: ', moving_data.moving_time)
-                state.moving_time = moving_data.moving_time
-                print('Stopped time: ', moving_data.stopped_time)
-                state.stopped_time = moving_data.stopped_time
-                print('Max speed: ' , moving_data.max_speed)
-                state.max_speed = moving_data.max_speed
-                print('Avg speed: ' , (moving_data.moving_distance / moving_data.moving_time) if moving_data.moving_time > 0 else "?")
-
-                uphill, downhill = gpx.get_uphill_downhill()
-                print('Total uphill: ', uphill)
-                state.uphill = uphill
-                print('Total downhill: ', downhill)
-                state.downhill = downhill
+            max_speed = await active_ride.gpsreadingss.max("speed")
+            avg_speed = await active_ride.gpsreadingss.avg("speed")
+            max_altitude = await active_ride.gpsreadingss.max("altitude")
+            avg_power = await active_ride.powerreadingss.avg("power")
+            max_power = await active_ride.powerreadingss.max("power")
+            avg_hr = await active_ride.hrreadingss.avg("bpm")
+            max_hr = await active_ride.hrreadingss.max("bpm")
+            avg_temp = await active_ride.enviroreadingss.avg("temp")
+            max_temp = await active_ride.enviroreadingss.max("temp")
+            
+            # Log averages
+            logger.info("Uphill = {}".format(gps_up_hill))
+            logger.info("Downhill = {}".format(gps_down_hill))
+            logger.info("GPS db distance: {}".format(gps_distance))
+            logger.info("Speed: max = {}, avg = {}".format(max_speed, avg_speed))
+            logger.info("Max Altitude = {}".format(max_altitude))
+            logger.info("Heart Rate: max  = {}, avg = {}".format(max_hr, avg_hr))
+            logger.info("Temperature: max = {}, avg = {}".format(max_temp, avg_temp))
+            
+            # Push into state
+            state.distance = gps_distance
+            state.max_speed = max_speed
+            state.avg_speed = avg_speed
+            state.uphill = gps_up_hill
+            state.downhill = gps_down_hill
+            state.max_altitude = max_altitude
+            state.avg_power = avg_power
+            state.max_power = max_power
+            state.avg_hr = avg_hr
+            state.max_hr = max_hr
+            state.avg_temp = avg_temp
+            state.max_temp = max_temp
         else:
             print("no active ride, so no averages to calc")
 
