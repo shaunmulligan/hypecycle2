@@ -187,6 +187,7 @@ async def websocket_endpoint(websocket: WebSocket):
             "instantaneous_power": hypecycleState.instantaneous_power,
             "power3s": hypecycleState.power3s,
             "power10s": hypecycleState.power10s,
+            "cadence": hypecycleState.cadence,
             "bpm": hypecycleState.bpm,
             "speed": hypecycleState.speed,
             "max_speed": hypecycleState.max_speed,

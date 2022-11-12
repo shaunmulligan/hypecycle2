@@ -97,7 +97,7 @@ class PowerSensor(object):
         async with BleakClient(self.address, loop=self.asyncio_loop, timeout=5.0) as client:
             # Set the instance client so we can clean up later.
             self.client = client
-            pw3s = deque([0]*3,maxlen=3) # arry to record last 3 seconds of power
+            pw3s = deque([0]*3,maxlen=3) # array to record last 3 seconds of power
             pw10s = deque([0]*10,maxlen=10) # array to record last 10 seconds of power // TODO: probably a cleaner way to do these two together
 
             def my_power_handler(data):
@@ -117,6 +117,7 @@ class PowerSensor(object):
 
                 logger.debug("cadence: {}".format(cadence))
                 pw10s.appendleft(data.instantaneous_power)
+                pw3s.appendleft(data.instantaneous_power)
                 self.state.power10s = sum(pw10s)/10
                 self.state.power3s = sum(pw3s)/3
                 self.state.instantaneous_power = data.instantaneous_power
