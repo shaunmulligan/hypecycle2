@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 import time
 import asyncio
+from datetime import datetime
 import ioexpander as io
 
 import gpxpy
 import gpxpy.gpx
+
+import randomname
 
 from model.db import Rides, Settings
 from lib.recorder.files import write_gpx_file
@@ -57,7 +60,7 @@ async def monitor_buttons(state):
                 cur_ride = await Rides.objects.filter(active=True).get_or_none()
                 if cur_ride:
                     # Change ride active state to false
-                    ride = await cur_ride.update(active=False) # TODO: add endtime stamp here
+                    ride = await cur_ride.update(active=False, end_time=datetime.now())
                     logger.info("Stop ride requested by button press...")
                     state.elapsed_time = 0
                     state.distance = 0.0
@@ -67,7 +70,8 @@ async def monitor_buttons(state):
                 else:
                     logger.info("No active ride to stop... so starting a new ride")
                     # Create a new ride TODO: Generate interesting names here
-                    ride = Rides(name="New Ride")
+                    ride_name = randomname.get_name()
+                    ride = Rides(name=ride_name)
                     await ride.save()
 
             await asyncio.sleep(1.0 / 30)

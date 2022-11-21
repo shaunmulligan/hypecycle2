@@ -19,7 +19,7 @@ bmp.temperature_oversampling = 2
 async def monitor_pressure_temp(state):
 
     # change this to match the location's pressure (hPa) at sea level
-    sea_level_pressure = 1027.0
+    sea_level_pressure = 1021.8
     logger.info("Altitude monitoring has started, sea level pressure set at {} hpa".format(sea_level_pressure))
     while True:
         pressure, temp = await loop.run_in_executor(None, bmp._read)
