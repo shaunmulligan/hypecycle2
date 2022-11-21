@@ -19,6 +19,8 @@ async def get_rides_summaries():
             avg_hr = await ride.hrreadingss.avg("bpm")
 
             summary = ride.__dict__
+            if not up_hill:
+                up_hill = 0.0
             summary.update({"duration": duration, "distance": distance, "up_hill": up_hill, "avg_speed": avg_speed, "avg_power":avg_power, "avg_hr":avg_hr})
             print(summary)
             summaries.append(summary)
