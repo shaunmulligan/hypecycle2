@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import time
 import asyncio
+from datetime import datetime
 import ioexpander as io
 
 import gpxpy
@@ -57,7 +58,7 @@ async def monitor_buttons(state):
                 cur_ride = await Rides.objects.filter(active=True).get_or_none()
                 if cur_ride:
                     # Change ride active state to false
-                    ride = await cur_ride.update(active=False) # TODO: add endtime stamp here
+                    ride = await cur_ride.update(active=False, end_time=datetime.now())
                     logger.info("Stop ride requested by button press...")
                     state.elapsed_time = 0
                     state.distance = 0.0
