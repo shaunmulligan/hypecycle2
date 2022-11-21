@@ -31,7 +31,8 @@ picamera2
 # GPX 
 gpxpy==1.5.0
 
-
+# Random name generator for ride names:
+randomname==0.1.5
 
 
 

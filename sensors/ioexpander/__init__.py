@@ -7,6 +7,8 @@ import ioexpander as io
 import gpxpy
 import gpxpy.gpx
 
+import randomname
+
 from model.db import Rides, Settings
 from lib.recorder.files import write_gpx_file
 import config
@@ -68,7 +70,8 @@ async def monitor_buttons(state):
                 else:
                     logger.info("No active ride to stop... so starting a new ride")
                     # Create a new ride TODO: Generate interesting names here
-                    ride = Rides(name="New Ride")
+                    ride_name = randomname.get_name()
+                    ride = Rides(name=ride_name)
                     await ride.save()
 
             await asyncio.sleep(1.0 / 30)
