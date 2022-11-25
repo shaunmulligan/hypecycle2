@@ -9,6 +9,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi_crudrouter import OrmarCRUDRouter
 from fastapi import WebSocket, WebSocketDisconnect
+import websockets
 
 from bleak import BleakScanner
 
@@ -16,6 +17,7 @@ from model.db import database, Rides, Blesensors, Gpsreadings, Hrreadings, Power
 from api import rides, settings
 from lib.connectionmanager import ConnectionManager
 from lib import recorder
+from lib.state import State
 
 from sensors.ble import HrSensor, PowerSensor
 from sensors.ble.discover import discover_devices
@@ -40,45 +42,7 @@ app.add_middleware(
 app.state.database = database
 
 # Shared State
-hypecycleState = type('SharedData', (), {})()
-hypecycleState.gps_active = True
-hypecycleState.hr_available = False
-hypecycleState.power_available = False
-hypecycleState.ride_paused = False # When this is true we should record data
-hypecycleState.is_active = False # is_active = True when we have an Current/active ride in the DB
-hypecycleState.battery_level = 100.0
-hypecycleState.fix_quality = 0
-hypecycleState.instantaneous_power = 0
-hypecycleState.power3s = 0
-hypecycleState.power10s = 0
-hypecycleState.cadence = 0
-hypecycleState.bpm = 0
-hypecycleState.speed = 0.0
-hypecycleState.max_speed = 0.0
-hypecycleState.gps_altitude = 0.0
-hypecycleState.altitude = 0.0
-hypecycleState.temperature = 0.0
-hypecycleState.location = {
-                "latitude": 0.0,
-                "longitude": 0.0,
-            }
-hypecycleState.latitude = 0.0
-hypecycleState.longitude = 0.0
-hypecycleState.distance = 0.0
-hypecycleState.moving_time = 0
-hypecycleState.stopped_time = 0
-hypecycleState.elapsed_time = 0
-hypecycleState.uphill = 0.0
-hypecycleState.downhill = 0.0
-hypecycleState.max_speed = 0.0
-hypecycleState.avg_speed = 0.0
-hypecycleState.max_altitude = 0.0
-hypecycleState.avg_power = 0.0
-hypecycleState.max_power = 0.0
-hypecycleState.avg_hr = 0.0
-hypecycleState.max_hr = 0.0
-hypecycleState.avg_temp = 0.0
-hypecycleState.max_temp = 0.0
+hypecycleState = State()
 
 ble_sensors_active = asyncio.Event() # single to indicate if BLE devices should be active or not
 
@@ -93,7 +57,6 @@ async def get_location():
         return {
                 "latitude": 0.0,
                 "longitude": 0.0,
-                # "gps_time": None
             }
 
 @app.get("/altitude")
@@ -178,42 +141,11 @@ async def websocket_endpoint(websocket: WebSocket):
     await manager.connect(websocket)
     try:
         while True:
-            state = { "gps_fix" : hypecycleState.fix_quality, 
-            "heart_rate": hypecycleState.hr_available, 
-            "power": hypecycleState.power_available, 
-            "battery": hypecycleState.battery_level, 
-            "is_active": hypecycleState.is_active,
-            "ride_paused": hypecycleState.ride_paused,
-            "instantaneous_power": hypecycleState.instantaneous_power,
-            "power3s": hypecycleState.power3s,
-            "power10s": hypecycleState.power10s,
-            "cadence": hypecycleState.cadence,
-            "bpm": hypecycleState.bpm,
-            "speed": hypecycleState.speed,
-            "max_speed": hypecycleState.max_speed,
-            "avg_speed": hypecycleState.avg_speed,
-            "gps_altitude": float(hypecycleState.gps_altitude or 0.0),
-            "altitude": float(hypecycleState.altitude or 0.0),
-            "location": hypecycleState.location,
-            "temperature": hypecycleState.temperature,
-            "latitude": hypecycleState.latitude,
-            "longitude": hypecycleState.longitude,
-            "distance": hypecycleState.distance,
-            "uphill": hypecycleState.uphill,
-            "downhill": hypecycleState.downhill,
-            "elapsed_time": hypecycleState.elapsed_time,
-            "moving_time": hypecycleState.moving_time,
-            "stopped_time": hypecycleState.stopped_time,
-            "avg_power": hypecycleState.avg_power,
-            "max_power": hypecycleState.max_power,
-            "avg_hr": hypecycleState.avg_hr,
-            "max_hr": hypecycleState.max_hr,
-            "avg_temp": hypecycleState.avg_temp,
-            "max_temp": hypecycleState.max_temp,
-             }
-
+            state = hypecycleState.toJson()
             await websocket.send_json(state)
             await asyncio.sleep(1) # Send shared state once every second
+    except websockets.exceptions.ConnectionClosedError:
+        logger.info("Websocket seems down, trying again...")
     except WebSocketDisconnect:
         manager.disconnect(websocket)
     except asyncio.exceptions.CancelledError:
@@ -259,12 +191,10 @@ app.include_router(OrmarCRUDRouter(schema=Gpsreadings, prefix="gps",))
 app.include_router(OrmarCRUDRouter(schema=Hrreadings, prefix="heart_rate",))
 app.include_router(OrmarCRUDRouter(schema=Powerreadings, prefix="power",))
 app.include_router(OrmarCRUDRouter(schema=Enviroreadings, prefix="enviroment"))
-
-
 # Custom Routes
 app.include_router(rides.router, prefix="/rides", tags=["Rides"])
 app.include_router(settings.router, prefix="/settings", tags=["Settings"])
-if __name__ == "__main__":
 
+if __name__ == "__main__":
     # to play with API run the script and visit http://0.0.0.0:8001/docs
     uvicorn.run(app, host="0.0.0.0", port=8001)
