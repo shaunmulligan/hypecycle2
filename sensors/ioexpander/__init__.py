@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import time
+import time, shutil
 import asyncio
 from datetime import datetime
 import ioexpander as io
@@ -47,7 +47,7 @@ async def monitor_buttons(state):
         button_3 = await loop.run_in_executor(None, ioe.input, BTN_3)
 
         if start_pause != start_pause_last:
-            print("Start/Pause Button has been {}".format("released" if start_pause else "pressed"))
+            logger.info("Start/Pause Button has been {}".format("released" if start_pause else "pressed"))
             start_pause_last = start_pause
             if not start_pause:
                 state.ride_paused = not state.ride_paused # Toggle the paused state
@@ -67,11 +67,15 @@ async def monitor_buttons(state):
                     # Generate and save GPX file.
                     f = await write_gpx_file(ride.id)
                     logger.info("Saved ride to file named {}".format(f))
+                    #reset geojson file to default
+                    shutil.copy('data/default.geojson', 'data/current-ride.geojson')
                 else:
                     logger.info("No active ride to stop... so starting a new ride")
-                    # Create a new ride TODO: Generate interesting names here
+                    # Create a new ride 
                     ride_name = randomname.get_name()
                     ride = Rides(name=ride_name)
+                    # TODO: we probably need to abstract "new ride" into its own thing
+                    
                     await ride.save()
 
             await asyncio.sleep(1.0 / 30)

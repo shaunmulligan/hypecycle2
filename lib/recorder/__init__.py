@@ -1,4 +1,4 @@
-import asyncio
+import asyncio, json
 from datetime import datetime
 from model.db import Rides, Gpsreadings, Hrreadings, Powerreadings, Enviroreadings
 from lib.recorder.files import generate_gpx
@@ -42,6 +42,19 @@ async def monitor_recording(state, interval=1):
             await env_reading.save()
             time_delta = datetime.now() - active_ride.start_time
             state.elapsed_time = time_delta.total_seconds()
+
+            def hook(obj): #This hooks in and appends latlong into our current ride geojson file
+                if 'coordinates' in obj:
+                    points = obj["coordinates"]
+                    if obj['type'] == 'LineString':
+                        points.append([state.longitude, state.latitude])
+                return obj
+
+            data = None
+            with open("data/current-ride.geojson", "r") as file:
+                data = json.load(file, object_hook=hook)
+            with open("data/current-ride.geojson", "w") as file:
+                json.dump(data, file, indent=4)
 
         await asyncio.sleep(interval)
 
@@ -87,6 +100,6 @@ async def monitor_averages(state, interval=10):
             state.avg_temp = avg_temp
             state.max_temp = max_temp
         else:
-            print("no active ride, so no averages to calc")
+            logger.info("no active ride, so no averages to calc")
 
         await asyncio.sleep(interval)

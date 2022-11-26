@@ -15,10 +15,10 @@ logger = logging.getLogger(__name__)
 class HrSensor(object):
     """ HRM BLE sensor class """
     async def __aenter__(self):
-        print('__aenter__ for HrSensor')
+        logger.debug('__aenter__ for HrSensor')
 
     async def __aexit__(self, *_):
-        print('__aexit__ Clean up for HrSensor')
+        logger.debug('__aexit__ Clean up for HrSensor')
         self.client.disconnect()
         asyncio.sleep(5)
         
@@ -68,10 +68,10 @@ class HrSensor(object):
 class PowerSensor(object):
     """ Power BLE sensor class """
     async def __aenter__(self):
-        print('__aenter__ for PowerSensor')
+        logger.debug('__aenter__ for PowerSensor')
 
     async def __aexit__(self, *_):
-        print('__aexit__ Clean up for PowerSensor')
+        logger.debug('__aexit__ Clean up for PowerSensor')
         self.client.disconnect()
         asyncio.sleep(5)
 
