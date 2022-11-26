@@ -8,7 +8,7 @@
 - High accuracy altimeter and ambient temperature
 - Controllable Front facing LED lights for visibility
 - Quadcore rpi zero 2 W at its heart
-- 1200mah high capacity Lipo battery
+- 3700mah high capacity Lipo battery
 - 100% opensource
 - 3 physical buttons
 - Integrated into bar mount

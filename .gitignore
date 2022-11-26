@@ -1,3 +1,4 @@
 __pycache__/
 *.sqlite
 *.gpx
+data/current-ride.geojson
