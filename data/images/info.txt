@@ -1,0 +1,1 @@
+This folder holds our still images from the "/camera/snap" API
