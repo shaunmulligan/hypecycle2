@@ -44,6 +44,7 @@ async def stop_current_ride():
         ride = await cur_ride.update(active=False, end_time=datetime.now())
         #reset geojson file to default
         shutil.copy('data/default.geojson', 'data/current-ride.geojson')
+        return ride
 
 @router.post("/save/{ride_id}")
 async def save_gpx(ride_id):
