@@ -3,7 +3,7 @@ BLE device discovery module
 """
 
 import asyncio
-from bleak import discover
+from bleak import BleakScanner
 from sensors.ble.ble_service_uuids import service_uuids
 
 async def main():
@@ -13,7 +13,7 @@ async def main():
 
 async def discover_devices():
     """Discover all nearby relevant BLE devices and return them as a list"""
-    raw_devices = await discover(timeout=10.0)
+    raw_devices = await BleakScanner.discover(timeout=10.0)
     devices = []
     for d in raw_devices:
         info = await get_device_info(d)
