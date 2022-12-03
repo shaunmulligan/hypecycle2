@@ -1,8 +1,9 @@
+import asyncio
 
 class Machine():
 
-    def __init__(self, brightness=255, enableWifi=True):
-        self._enableWifi = enableWifi
+    def __init__(self, brightness=255, wifi=True):
+        self._wifi = wifi
         self.brightness = brightness #call the function to actually set the value
     
     @property
@@ -23,18 +24,46 @@ class Machine():
     @brightness.deleter
     def brightness(self):
         del self._brightness
-
+    
     @property
-    def enableWifi(self):
-        #TODO: check if wifi is enabled
-        return self._enableWifi
+    def wifi(self):
+        return self._wifi
+
+    async def wifiEnable(self):
+        stdO, stdE = await self._run("rfkill unblock wifi")
+        if stdE:
+            print(f'[stderr]\n{stdE.decode()}')
+        else:
+            self._wifi = True
     
-    @enableWifi.setter
-    def enableWifi(self, value):
-        if isinstance(value, bool):
-            self._enableWifi = value
-            #TODO: enable wifi here and only set if successful
-    
-    @enableWifi.deleter
-    def enableWifi(self):
-        del self._enableWifi
+    async def wifiDisable(self):
+        stdO, stdE = await self._run("rfkill block wifi")
+        if stdE:
+            print(f'[stderr]\n{stdE.decode()}')
+        else:
+            self._wifi = False
+
+    async def _run(self, cmd: str):
+        proc = await asyncio.create_subprocess_shell(
+            cmd,
+            stderr=asyncio.subprocess.PIPE,
+            stdout=asyncio.subprocess.PIPE
+        )
+
+        stdout, stderr = await proc.communicate()
+
+        print(f'[{cmd!r} exited with {proc.returncode}]')
+        if stdout:
+            print(f'[stdout]\n{stdout.decode()}')
+        if stderr:
+            print(f'[stderr]\n{stderr.decode()}')
+        return stdout, stderr
+
+async def main() -> None:
+    m = Machine(100,True)
+    await m.wifiDisable()
+    await asyncio.sleep(30)
+    await m.wifiEnable()
+
+if __name__ == "__main__":
+    asyncio.run(main())
