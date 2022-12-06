@@ -15,11 +15,11 @@ async def get_current_settings():
 async def update_settings(settings: Settings):
     s = await Settings.objects.get(id=1) # Always use the first settings entry
     await s.upsert(**dict(settings))
-    print(s)
+
     m.brightness = s.lcd_brightness
     if not s.wifi_enabled:
         await m.wifiDisable()
     else:
-        await m.wifiEnable()
+        await m.wifiEnable() #Always enable wifi on start
 
     return s
