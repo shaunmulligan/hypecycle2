@@ -1,11 +1,12 @@
 # Create symlink to make working with i2c easier
 FILE=/dev/i2c-1
 FILE2=/dev/i2c-11
-if ! [ -L $FILE ]; then
+
+if ! [ -e /dev/i2c-1 ]; then
     echo "No $FILE found, creating symlink"
     if ! [ -L $FILE2 ]; then
         echo "No i2c-11 found, trying i2c-22"
-        sudo ln -s /dev/i2c-11 /dev/i2c-1
+        sudo ln -s /dev/i2c-22 /dev/i2c-1
     else
         sudo ln -s /dev/i2c-11 /dev/i2c-1
     fi

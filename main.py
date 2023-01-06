@@ -14,7 +14,7 @@ import websockets
 from bleak import BleakScanner
 
 from model.db import database, Rides, Blesensors, Gpsreadings, Hrreadings, Powerreadings, Enviroreadings
-from api import rides, settings, geojson
+from api import rides, settings, geojson, camera
 from lib.connectionmanager import ConnectionManager
 from lib import recorder
 from lib.state import State
@@ -195,6 +195,7 @@ app.include_router(OrmarCRUDRouter(schema=Enviroreadings, prefix="enviroment"))
 app.include_router(rides.router, prefix="/rides", tags=["Rides"])
 app.include_router(settings.router, prefix="/settings", tags=["Settings"])
 app.include_router(geojson.router, prefix="/geojson", tags=["Geojson"])
+app.include_router(camera.router, prefix="/camera", tags=["Camera"])
 
 if __name__ == "__main__":
     # to play with API run the script and visit http://0.0.0.0:8001/docs

@@ -1,9 +1,10 @@
 from fastapi import APIRouter, HTTPException
 import config
 from model.db import Settings
-# from model.config import Settings
+from lib.machine import Machine
 
 router = APIRouter()
+m = Machine(255,True)
 
 @router.get("/", response_model=Settings)
 async def get_current_settings():
@@ -14,4 +15,11 @@ async def get_current_settings():
 async def update_settings(settings: Settings):
     s = await Settings.objects.get(id=1) # Always use the first settings entry
     await s.upsert(**dict(settings))
+
+    m.brightness = s.lcd_brightness
+    if not s.wifi_enabled:
+        await m.wifiDisable()
+    else:
+        await m.wifiEnable() #Always enable wifi on start
+
     return s
