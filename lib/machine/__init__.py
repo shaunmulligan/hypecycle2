@@ -16,8 +16,8 @@ class Machine():
             raise TypeError
         if level <=255 and level >= 0:
             self._brightness = (255 - level) #flip level so that our range is from 0 - 255
-            with open('/sys/waveshare/rpi_backlight/brightness', 'w') as f:
-                f.write(str(self._brightness))
+            # with open('/sys/waveshare/rpi_backlight/brightness', 'w') as f:
+            #     f.write(str(self._brightness))
         else:
             raise ValueError('level needs to be an integer between 0 and 255')
 

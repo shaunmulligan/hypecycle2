@@ -22,7 +22,8 @@ from lib.state import State
 from sensors.ble import HrSensor, PowerSensor
 from sensors.ble.discover import discover_devices
 from sensors import gps
-from sensors import ioexpander 
+# from sensors import ioexpander 
+from sensors import seesaw as io
 from sensors import bmp388
 
 import config
@@ -160,11 +161,11 @@ async def startup() -> None:
     # Spawn GPS monitoring task
     gps_task = asyncio.create_task(gps.monitor_gps(hypecycleState))
     enviro_task = asyncio.create_task(bmp388.monitor_pressure_temp(hypecycleState))
-    button_task = asyncio.create_task(ioexpander.monitor_buttons(hypecycleState))
-    battery_task = asyncio.create_task(ioexpander.monitor_battery(hypecycleState))
+    button_task = asyncio.create_task(io.monitor_buttons(hypecycleState))
+    battery_task = asyncio.create_task(io.monitor_battery(hypecycleState))
     recorder_task = asyncio.create_task(recorder.monitor_recording(hypecycleState,interval=1))
     averages_task = asyncio.create_task(recorder.monitor_averages(hypecycleState))
-    lights_task = asyncio.create_task(ioexpander.lights_task(hypecycleState))
+    lights_task = asyncio.create_task(io.lights_task(hypecycleState))
 
 @app.on_event("shutdown")
 async def shutdown() -> None:
